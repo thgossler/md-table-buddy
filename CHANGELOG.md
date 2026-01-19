@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Context menu integration in Markdown files
 - Command palette integration with "Markdown Table Buddy" category
 - Support for table alignment markers (`:---`, `:---:`, `---:`)
+- **Configurable settings:**
+  - `fileExtensions` - custom file extensions to treat as Markdown (e.g., `.mdx`, `.markdown`)
+  - `cellPadding` - add space at start and end of cell content
+  - `separatorPadding` - add space at start and end of separator cells
+  - `alignSeparatorWithHeader` - match separator column widths to header text widths
 
 ### Technical
 - TypeScript-based implementation

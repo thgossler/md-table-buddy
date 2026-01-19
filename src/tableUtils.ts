@@ -13,6 +13,18 @@ export interface MarkdownTable {
 }
 
 /**
+ * Options for compacting tables
+ */
+export interface CompactOptions {
+    /** Add a space at the start and end of each cell */
+    cellPadding: boolean;
+    /** Add a space at the start and end of separator cells (requires cellPadding) */
+    separatorPadding: boolean;
+    /** Align separator column widths with header text widths */
+    alignSeparatorWithHeader: boolean;
+}
+
+/**
  * Checks if a line is a markdown table row
  */
 export function isTableRow(line: string): boolean {
@@ -45,29 +57,77 @@ export function parseTableRow(line: string): string[] {
 }
 
 /**
+ * Gets the default compact options
+ */
+export function getDefaultCompactOptions(): CompactOptions {
+    return {
+        cellPadding: false,
+        separatorPadding: false,
+        alignSeparatorWithHeader: false
+    };
+}
+
+/**
+ * Creates a separator cell with the specified alignment and width
+ */
+function createSeparatorCell(cell: string, width: number, options: CompactOptions): string {
+    const trimmed = cell.trim();
+    const leftAlign = trimmed.startsWith(':');
+    const rightAlign = trimmed.endsWith(':');
+    
+    // Calculate minimum dashes needed (at least 3)
+    let dashCount = Math.max(3, width);
+    if (leftAlign) {
+        dashCount--;
+    }
+    if (rightAlign) {
+        dashCount--;
+    }
+    dashCount = Math.max(1, dashCount); // Ensure at least 1 dash
+    
+    const dashes = '-'.repeat(dashCount);
+    let separator: string;
+    
+    if (leftAlign && rightAlign) {
+        separator = ':' + dashes + ':';
+    } else if (leftAlign) {
+        separator = ':' + dashes;
+    } else if (rightAlign) {
+        separator = dashes + ':';
+    } else {
+        separator = '-'.repeat(Math.max(3, width));
+    }
+    
+    // Add padding if enabled for separators
+    if (options.cellPadding && options.separatorPadding) {
+        return ' ' + separator + ' ';
+    }
+    return separator;
+}
+
+/**
  * Compacts a single table row by removing unnecessary whitespace
  */
-export function compactTableRow(cells: string[], isSeparator: boolean): string {
+export function compactTableRow(
+    cells: string[],
+    isSeparator: boolean,
+    options: CompactOptions = getDefaultCompactOptions(),
+    headerWidths?: number[]
+): string {
     if (isSeparator) {
-        // For separator rows, preserve alignment markers but minimize dashes
-        const compactedCells = cells.map(cell => {
-            const trimmed = cell.trim();
-            const leftAlign = trimmed.startsWith(':');
-            const rightAlign = trimmed.endsWith(':');
-            
-            if (leftAlign && rightAlign) {
-                return ':---:';
-            } else if (leftAlign) {
-                return ':---';
-            } else if (rightAlign) {
-                return '---:';
-            } else {
-                return '---';
-            }
+        // For separator rows, preserve alignment markers
+        const compactedCells = cells.map((cell, index) => {
+            const width = options.alignSeparatorWithHeader && headerWidths
+                ? headerWidths[index] || 3
+                : 3;
+            return createSeparatorCell(cell, width, options);
         });
         return '|' + compactedCells.join('|') + '|';
     } else {
-        // For regular rows, just trim each cell
+        // For regular rows, trim each cell and optionally add padding
+        if (options.cellPadding) {
+            return '|' + cells.map(cell => ' ' + cell + ' ').join('|') + '|';
+        }
         return '|' + cells.join('|') + '|';
     }
 }
@@ -119,10 +179,17 @@ export function findTables(lines: string[]): MarkdownTable[] {
 /**
  * Compacts a markdown table by removing unnecessary whitespace
  */
-export function compactTable(table: MarkdownTable): string[] {
+export function compactTable(
+    table: MarkdownTable,
+    options: CompactOptions = getDefaultCompactOptions()
+): string[] {
+    // Calculate header widths for separator alignment
+    const headerRow = table.rows[0];
+    const headerWidths = headerRow.map(cell => cell.length);
+    
     return table.rows.map((row, index) => {
         const isSeparator = index === table.separatorIndex;
-        return compactTableRow(row, isSeparator);
+        return compactTableRow(row, isSeparator, options, headerWidths);
     });
 }
 

@@ -57,11 +57,55 @@ Compacts all tables in the current Markdown document at once.
 ## Requirements
 
 - Visual Studio Code 1.85.0 or higher
-- Works only with Markdown files (`.md`)
+- Works with Markdown files (`.md` by default, configurable)
 
 ## Extension Settings
 
-This extension currently does not add any VS Code settings.
+This extension contributes the following settings:
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `md-table-buddy.fileExtensions` | `[".md"]` | File extensions to treat as Markdown files (e.g., `[".md", ".mdx", ".markdown"]`) |
+| `md-table-buddy.compactTable.cellPadding` | `false` | Add a space at the start and end of each cell content (e.g., `\| cell \|` instead of `\|cell\|`) |
+| `md-table-buddy.compactTable.separatorPadding` | `false` | Add a space at the start and end of separator row cells (requires `cellPadding` to be enabled) |
+| `md-table-buddy.compactTable.alignSeparatorWithHeader` | `false` | Align separator row column widths with the header text widths |
+
+### Setting Examples
+
+**Default (all settings `false`):**
+```markdown
+|Name|Age|City|
+|---|---|---|
+|John|30|NYC|
+```
+
+**With `cellPadding: true`:**
+```markdown
+| Name | Age | City |
+|---|---|---|
+| John | 30 | NYC |
+```
+
+**With `cellPadding: true` and `separatorPadding: true`:**
+```markdown
+| Name | Age | City |
+| --- | --- | --- |
+| John | 30 | NYC |
+```
+
+**With `alignSeparatorWithHeader: true`:**
+```markdown
+|Name|Age|City|
+|----|---|----| 
+|John|30|NYC|
+```
+
+**With all settings `true`:**
+```markdown
+| Name | Age | City |
+| ---- | --- | ---- |
+| John | 30 | NYC |
+```
 
 ## Known Issues
 

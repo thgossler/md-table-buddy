@@ -75,7 +75,35 @@
         "id": "md-table-buddy.submenu",
         "label": "Markdown Table Buddy"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Markdown Table Buddy",
+      "properties": {
+        "md-table-buddy.fileExtensions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [".md"],
+          "description": "File extensions to treat as Markdown files (e.g., ['.md', '.mdx', '.markdown'])"
+        },
+        "md-table-buddy.compactTable.cellPadding": {
+          "type": "boolean",
+          "default": false,
+          "description": "Add a space at the start and end of each cell content (e.g., '| cell |' instead of '|cell|')"
+        },
+        "md-table-buddy.compactTable.separatorPadding": {
+          "type": "boolean",
+          "default": false,
+          "description": "Add a space at the start and end of separator row cells (requires cellPadding to be enabled)"
+        },
+        "md-table-buddy.compactTable.alignSeparatorWithHeader": {
+          "type": "boolean",
+          "default": false,
+          "description": "Align separator row column widths with the header text widths"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

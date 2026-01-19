@@ -1,5 +1,17 @@
 import * as vscode from 'vscode';
-import { findTables, findTableAtPosition, compactTable } from './tableUtils';
+import { findTables, findTableAtPosition, compactTable, CompactOptions } from './tableUtils';
+
+/**
+ * Gets the compact options from VS Code settings
+ */
+function getCompactOptions(): CompactOptions {
+    const config = vscode.workspace.getConfiguration('md-table-buddy.compactTable');
+    return {
+        cellPadding: config.get<boolean>('cellPadding', false),
+        separatorPadding: config.get<boolean>('separatorPadding', false),
+        alignSeparatorWithHeader: config.get<boolean>('alignSeparatorWithHeader', false)
+    };
+}
 
 /**
  * Activates the Markdown Table Buddy extension
@@ -32,7 +44,8 @@ export function activate(context: vscode.ExtensionContext) {
                 return;
             }
 
-            const compactedRows = compactTable(table);
+            const options = getCompactOptions();
+            const compactedRows = compactTable(table, options);
             
             await editor.edit(editBuilder => {
                 const range = new vscode.Range(
@@ -72,10 +85,11 @@ export function activate(context: vscode.ExtensionContext) {
 
             // Process tables in reverse order to maintain line numbers
             const reversedTables = [...tables].reverse();
+            const options = getCompactOptions();
 
             await editor.edit(editBuilder => {
                 for (const table of reversedTables) {
-                    const compactedRows = compactTable(table);
+                    const compactedRows = compactTable(table, options);
                     const range = new vscode.Range(
                         new vscode.Position(table.startLine, 0),
                         new vscode.Position(table.endLine, lines[table.endLine].length)
@@ -92,10 +106,26 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 /**
- * Checks if the document is a Markdown file
+ * Gets the configured file extensions for Markdown files
+ */
+function getFileExtensions(): string[] {
+    const config = vscode.workspace.getConfiguration('md-table-buddy');
+    return config.get<string[]>('fileExtensions', ['.md']);
+}
+
+/**
+ * Checks if the document is a supported Markdown file
  */
 function isMarkdownFile(document: vscode.TextDocument): boolean {
-    return document.languageId === 'markdown';
+    // Check by language ID first (handles .md files and files explicitly set to markdown)
+    if (document.languageId === 'markdown') {
+        return true;
+    }
+    
+    // Check by configured file extensions
+    const extensions = getFileExtensions();
+    const fileName = document.fileName.toLowerCase();
+    return extensions.some(ext => fileName.endsWith(ext.toLowerCase()));
 }
 
 /**
