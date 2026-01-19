@@ -1,0 +1,98 @@
+{
+  "name": "md-table-buddy",
+  "displayName": "Markdown Table Buddy",
+  "description": "Convenience tools for working with tables in Markdown files",
+  "version": "0.1.0",
+  "publisher": "md-table-buddy",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/md-table-buddy"
+  },
+  "license": "MIT",
+  "icon": "images/icon.png",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Formatters",
+    "Other"
+  ],
+  "keywords": [
+    "markdown",
+    "table",
+    "format",
+    "compact",
+    "md"
+  ],
+  "activationEvents": [
+    "onLanguage:markdown"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "md-table-buddy.compactTable",
+        "title": "Compact Table",
+        "category": "Markdown Table Buddy"
+      },
+      {
+        "command": "md-table-buddy.compactAllTables",
+        "title": "Compact All Tables",
+        "category": "Markdown Table Buddy"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "submenu": "md-table-buddy.submenu",
+          "group": "markdown-table-buddy",
+          "when": "editorLangId == markdown"
+        }
+      ],
+      "md-table-buddy.submenu": [
+        {
+          "command": "md-table-buddy.compactTable",
+          "group": "compact"
+        },
+        {
+          "command": "md-table-buddy.compactAllTables",
+          "group": "compact"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "md-table-buddy.compactTable",
+          "when": "editorLangId == markdown"
+        },
+        {
+          "command": "md-table-buddy.compactAllTables",
+          "when": "editorLangId == markdown"
+        }
+      ]
+    },
+    "submenus": [
+      {
+        "id": "md-table-buddy.submenu",
+        "label": "Markdown Table Buddy"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "typescript-eslint": "^8.52.0",
+    "eslint": "^9.39.2",
+    "typescript": "^5.9.3",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2"
+  }
+}
