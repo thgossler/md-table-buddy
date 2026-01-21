@@ -68,19 +68,19 @@ suite('Table Utils Test Suite', () => {
         });
 
         test('should add cell padding when option enabled', () => {
-            const options: CompactOptions = { cellPadding: true, separatorPadding: false, alignSeparatorWithHeader: false };
+            const options: CompactOptions = { cellPadding: true, separatorPadding: false, alignSeparatorWithHeader: false, keepSeparatorRatios: false };
             const result = compactTableRow(['cell1', 'cell2'], false, options);
             assert.strictEqual(result, '| cell1 | cell2 |');
         });
 
         test('should add separator padding when both options enabled', () => {
-            const options: CompactOptions = { cellPadding: true, separatorPadding: true, alignSeparatorWithHeader: false };
+            const options: CompactOptions = { cellPadding: true, separatorPadding: true, alignSeparatorWithHeader: false, keepSeparatorRatios: false };
             const result = compactTableRow(['---', ':---:'], true, options);
             assert.strictEqual(result, '| --- | :-: |');
         });
 
         test('should not add separator padding when only separatorPadding enabled', () => {
-            const options: CompactOptions = { cellPadding: false, separatorPadding: true, alignSeparatorWithHeader: false };
+            const options: CompactOptions = { cellPadding: false, separatorPadding: true, alignSeparatorWithHeader: false, keepSeparatorRatios: false };
             const result = compactTableRow(['---', '---'], true, options);
             assert.strictEqual(result, '|---|---|');
         });
@@ -148,7 +148,7 @@ suite('Table Utils Test Suite', () => {
                 '| Cell1   | Cell2   |'
             ];
             const tables = findTables(lines);
-            const options: CompactOptions = { cellPadding: true, separatorPadding: false, alignSeparatorWithHeader: false };
+            const options: CompactOptions = { cellPadding: true, separatorPadding: false, alignSeparatorWithHeader: false, keepSeparatorRatios: false };
             const compacted = compactTable(tables[0], options);
             assert.deepStrictEqual(compacted, [
                 '| Header1 | Header2 |',
@@ -164,7 +164,7 @@ suite('Table Utils Test Suite', () => {
                 '| Data       | X     |'
             ];
             const tables = findTables(lines);
-            const options: CompactOptions = { cellPadding: false, separatorPadding: false, alignSeparatorWithHeader: true };
+            const options: CompactOptions = { cellPadding: false, separatorPadding: false, alignSeparatorWithHeader: true, keepSeparatorRatios: false };
             const compacted = compactTable(tables[0], options);
             assert.strictEqual(compacted[0], '|LongHeader|Short|');
             assert.strictEqual(compacted[1], '|----------|-----|');
@@ -177,7 +177,7 @@ suite('Table Utils Test Suite', () => {
                 '| Cell    | Data    |'
             ];
             const tables = findTables(lines);
-            const options: CompactOptions = { cellPadding: true, separatorPadding: true, alignSeparatorWithHeader: true };
+            const options: CompactOptions = { cellPadding: true, separatorPadding: true, alignSeparatorWithHeader: true, keepSeparatorRatios: false };
             const compacted = compactTable(tables[0], options);
             assert.strictEqual(compacted[0], '| Header1 | Header2 |');
             assert.strictEqual(compacted[1], '| ------- | ------- |');

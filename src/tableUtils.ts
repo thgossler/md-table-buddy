@@ -32,6 +32,8 @@ export interface CompactOptions {
     separatorPadding: boolean;
     /** Align separator column widths with header text widths */
     alignSeparatorWithHeader: boolean;
+    /** Preserve original separator length ratios for Pandoc column width hints */
+    keepSeparatorRatios: boolean;
 }
 
 /**
@@ -46,6 +48,8 @@ export interface FormatOptions {
     separatorPadding: boolean;
     /** Preserve existing column alignment markers */
     preserveAlignment: boolean;
+    /** Preserve original separator length ratios for Pandoc column width hints */
+    keepSeparatorRatios: boolean;
 }
 
 /**
@@ -100,7 +104,8 @@ export function getDefaultCompactOptions(): CompactOptions {
     return {
         cellPadding: true,
         separatorPadding: true,
-        alignSeparatorWithHeader: true
+        alignSeparatorWithHeader: true,
+        keepSeparatorRatios: false
     };
 }
 
@@ -109,7 +114,8 @@ export function getDefaultFormatOptions(): FormatOptions {
         maxWidth: 0,
         cellPadding: true,
         separatorPadding: true,
-        preserveAlignment: true
+        preserveAlignment: true,
+        keepSeparatorRatios: false
     };
 }
 
@@ -441,6 +447,33 @@ function createSeparatorCell(
 }
 
 /**
+ * Calculates proportional separator widths based on original separator lengths
+ * @param originalSeparators The original separator row cells
+ * @param targetTotalWidth The target total width to distribute (sum of all separator cell widths)
+ * @returns Array of new widths for each separator cell (just the dashes+colons, no padding)
+ */
+function calculateProportionalSeparatorWidths(
+    originalSeparators: string[],
+    targetTotalWidth: number
+): number[] {
+    // Get original lengths (the actual separator content length, e.g., ":---:" = 5)
+    const originalLengths = originalSeparators.map(cell => cell.trim().length);
+    const originalTotal = originalLengths.reduce((sum, len) => sum + len, 0);
+    
+    if (originalTotal === 0) {
+        // Fallback: equal distribution
+        const perColumn = Math.max(3, Math.floor(targetTotalWidth / originalSeparators.length));
+        return originalSeparators.map(() => perColumn);
+    }
+    
+    // Calculate proportional widths
+    const proportions = originalLengths.map(len => len / originalTotal);
+    const newWidths = proportions.map(prop => Math.max(3, Math.round(prop * targetTotalWidth)));
+    
+    return newWidths;
+}
+
+/**
  * Compacts a single table row
  */
 export function compactTableRow(
@@ -477,8 +510,41 @@ export function compactTable(
     const headerRow = table.rows[0];
     const headerWidths = headerRow.map(cell => cell.length);
     
+    // Calculate proportional separator widths if keepSeparatorRatios is enabled
+    let separatorWidths: number[] | undefined;
+    if (options.keepSeparatorRatios && table.separatorIndex >= 0) {
+        const separatorRow = table.rows[table.separatorIndex];
+        // Calculate target total width based on the total width of the compacted table
+        // For compact mode, this is the sum of header widths (or 3 minimum) + padding
+        const paddingPerCell = options.cellPadding ? 2 : 0;
+        const separatorPadding = options.separatorPadding && options.cellPadding ? 2 : 0;
+        
+        // Calculate total table content width (excluding pipes)
+        let totalContentWidth = 0;
+        for (let i = 0; i < headerWidths.length; i++) {
+            const width = options.alignSeparatorWithHeader 
+                ? Math.max(3, headerWidths[i]) 
+                : 3;
+            totalContentWidth += width;
+        }
+        
+        // Distribute proportionally among separator cells
+        separatorWidths = calculateProportionalSeparatorWidths(separatorRow, totalContentWidth);
+    }
+    
     return table.rows.map((row, index) => {
         const isSeparator = index === table.separatorIndex;
+        
+        if (isSeparator && separatorWidths) {
+            // Use proportional separator widths
+            const compactedCells = row.map((cell, colIndex) => {
+                const width = separatorWidths![colIndex] || 3;
+                const alignment = table.alignments ? table.alignments[colIndex] : undefined;
+                return createSeparatorCell(cell, width, options, alignment);
+            });
+            return '|' + compactedCells.join('|') + '|';
+        }
+        
         return compactTableRow(row, isSeparator, options, headerWidths, table.alignments);
     });
 }
@@ -571,11 +637,32 @@ export function formatTable(
         }
     }
     
+    // Calculate proportional separator widths if keepSeparatorRatios is enabled
+    let proportionalSeparatorWidths: number[] | undefined;
+    if (options.keepSeparatorRatios && table.separatorIndex >= 0) {
+        const separatorRow = table.rows[table.separatorIndex];
+        // Calculate target total width = sum of column widths (the content widths)
+        const targetTotalWidth = columnWidths.reduce((sum, w) => sum + w, 0);
+        proportionalSeparatorWidths = calculateProportionalSeparatorWidths(separatorRow, targetTotalWidth);
+    }
+    
     // Format all rows
     return processedRows.map((row, rowIndex) => {
         if (rowIndex === table.separatorIndex) {
-            // Format separator row - same logic as header/data rows
+            // Format separator row
             const headerRow = processedRows[0] || [];
+            
+            // If keepSeparatorRatios is enabled, use proportional widths
+            if (proportionalSeparatorWidths) {
+                const separatorCells = row.map((cell, colIndex) => {
+                    const width = proportionalSeparatorWidths![colIndex] || 3;
+                    const alignment = alignments[colIndex] || 'none';
+                    return createSeparatorCell(cell, width, options, alignment);
+                });
+                return '|' + separatorCells.join('|') + '|';
+            }
+            
+            // Standard separator formatting
             
             const separatorCells = row.map((cell, colIndex) => {
                 const colWidth = columnWidths[colIndex] || 3;

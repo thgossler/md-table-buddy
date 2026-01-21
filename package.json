@@ -565,6 +565,11 @@
           "default": true,
           "description": "Align separator row column widths with the header text widths"
         },
+        "md-table-buddy.compactTable.keepSeparatorRatios": {
+          "type": "boolean",
+          "default": false,
+          "description": "Preserve original separator length ratios (for Pandoc column width hints)"
+        },
         "md-table-buddy.formatTable.maxWidth": {
           "type": "number",
           "default": 0,
@@ -584,6 +589,11 @@
           "type": "boolean",
           "default": true,
           "description": "Preserve existing column alignment markers"
+        },
+        "md-table-buddy.formatTable.keepSeparatorRatios": {
+          "type": "boolean",
+          "default": false,
+          "description": "Preserve original separator length ratios (for Pandoc column width hints)"
         },
         "md-table-buddy.rowNumbers.startNumber": {
           "type": "number",

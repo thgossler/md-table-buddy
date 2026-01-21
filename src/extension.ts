@@ -42,7 +42,8 @@ function getCompactOptions(): CompactOptions {
     return {
         cellPadding: config.get<boolean>('cellPadding', false),
         separatorPadding: config.get<boolean>('separatorPadding', false),
-        alignSeparatorWithHeader: config.get<boolean>('alignSeparatorWithHeader', false)
+        alignSeparatorWithHeader: config.get<boolean>('alignSeparatorWithHeader', false),
+        keepSeparatorRatios: config.get<boolean>('keepSeparatorRatios', false)
     };
 }
 
@@ -52,7 +53,8 @@ function getFormatOptions(): FormatOptions {
         maxWidth: config.get<number>('maxWidth', 0),
         cellPadding: config.get<boolean>('cellPadding', true),
         separatorPadding: config.get<boolean>('separatorPadding', true),
-        preserveAlignment: config.get<boolean>('preserveAlignment', true)
+        preserveAlignment: config.get<boolean>('preserveAlignment', true),
+        keepSeparatorRatios: config.get<boolean>('keepSeparatorRatios', false)
     };
 }
 

@@ -54,6 +54,28 @@ Keep your tables readable within a configurable maximum width **without truncati
 
 The separator and short rows stay within 80 characters, while row 2's long content is preserved without breaking the table structure.
 
+### 📐 Pandoc Column Width Hints
+
+> **Pro Tip for Pandoc Users:** Control your PDF column widths directly from Markdown!
+
+When exporting Markdown to PDF or other formats using **Pandoc**, the **relative lengths of dashes in separator cells** determine column width proportions. Table Buddy can preserve these ratios with `keepSeparatorRatios: true`.
+
+**Original table with custom separator widths:**
+```markdown
+| Name | Description                                               |
+|------|-----------------------------------------------------------|
+| API  | The main application programming interface for the system |
+```
+
+Now set custom separator ratios (1:12 ratio = ~8% : ~92% width):
+```markdown
+| Name | Description                                              |
+|-----|--------------------------------------------------------------|
+| API  | The main application programming interface for the system |
+```
+
+With `keepSeparatorRatios: true`, formatting and compacting preserve these proportions, ensuring Pandoc renders "Description" much wider than "Name" in the PDF output.
+
 ### 🔢 Row Numbers
 
 Automatically add, update, or remove row numbers - a feature unique to Table Buddy.
@@ -208,13 +230,15 @@ Copy this to your `settings.json` and customize as needed:
     "compactTable": {
         "cellPadding": true,
         "separatorPadding": true,
-        "alignSeparatorWithHeader": true
+        "alignSeparatorWithHeader": true,
+        "keepSeparatorRatios": false
     },
     "formatTable": {
         "maxWidth": 0,
         "cellPadding": true,
         "separatorPadding": true,
-        "preserveAlignment": true
+        "preserveAlignment": true,
+        "keepSeparatorRatios": false
     },
     "rowNumbers": {
         "startNumber": 1,
@@ -251,6 +275,7 @@ Copy this to your `settings.json` and customize as needed:
 | `compactTable.cellPadding` | `true` | Add space around cell content |
 | `compactTable.separatorPadding` | `true` | Add space in separator cells |
 | `compactTable.alignSeparatorWithHeader` | `true` | Match separator width to headers |
+| `compactTable.keepSeparatorRatios` | `false` | Preserve original separator length ratios (for Pandoc) |
 
 ### Format Table
 
@@ -260,6 +285,7 @@ Copy this to your `settings.json` and customize as needed:
 | `formatTable.cellPadding` | `true` | Add space around cell content |
 | `formatTable.separatorPadding` | `true` | Add space in separator cells |
 | `formatTable.preserveAlignment` | `true` | Keep existing alignment markers |
+| `formatTable.keepSeparatorRatios` | `false` | Preserve original separator length ratios (for Pandoc) |
 
 ### Row Numbers
 
