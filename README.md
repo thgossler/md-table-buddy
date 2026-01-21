@@ -1,4 +1,37 @@
-# Table Buddy
+<!-- SHIELDS -->
+<div align="center">
+
+[![Contributors][contributors-shield]][contributors-url]
+[![Forks][forks-shield]][forks-url]
+[![Stargazers][stars-shield]][stars-url]
+[![Issues][issues-shield]][issues-url]
+[![MIT License][license-shield]][license-url]
+
+</div>
+
+<!-- PROJECT LOGO -->
+<br />
+<div align="center">
+  <a href="https://github.com/thgossler/md-table-buddy">
+    <img src="images/icon.png" alt="Logo" width="80" height="80">
+  </a>
+  <h1 align="center">Table Buddy</h1>
+  <p align="center">
+    VS Code extension for Markdown tables with compact mode, max-width formatting, and smart features.
+    <br />
+    <a href="https://github.com/thgossler/md-table-buddy/issues">Report Bug</a>
+    ·
+    <a href="https://github.com/thgossler/md-table-buddy/issues">Request Feature</a>
+    ·
+    <a href="https://github.com/thgossler/md-table-buddy#contributing">Contribute</a>
+    ·
+    <a href="https://github.com/sponsors/thgossler">Sponsor project</a>
+    ·
+    <a href="https://www.paypal.com/donate/?hosted_button_id=JVG7PFJ8DMW7J">Sponsor via PayPal</a>
+  </p>
+</div>
+
+# Introduction
 
 [![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/md-table-buddy.md-table-buddy?style=flat-square&label=VS%20Code%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=md-table-buddy.md-table-buddy)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
@@ -366,6 +399,14 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+## Donate
+
+If you are using the tool but are unable to contribute technically, please consider promoting it and donating an amount that reflects its value to you. You can do so either via PayPal
+
+[![Donate via PayPal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/donate/?hosted_button_id=JVG7PFJ8DMW7J)
+
+or via [GitHub Sponsors](https://github.com/sponsors/thgossler).
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.txt) file for details.
@@ -373,3 +414,15 @@ This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.t
 ---
 
 **Enjoy working with Markdown tables!** 🎉
+
+<!-- MARKDOWN LINKS & IMAGES (https://www.markdownguide.org/basic-syntax/#reference-style-links) -->
+[contributors-shield]: https://img.shields.io/github/contributors/thgossler/md-table-buddy.svg
+[contributors-url]: https://github.com/thgossler/md-table-buddy/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/thgossler/md-table-buddy.svg
+[forks-url]: https://github.com/thgossler/md-table-buddy/network/members
+[stars-shield]: https://img.shields.io/github/stars/thgossler/md-table-buddy.svg
+[stars-url]: https://github.com/thgossler/md-table-buddy/stargazers
+[issues-shield]: https://img.shields.io/github/issues/thgossler/md-table-buddy.svg
+[issues-url]: https://github.com/thgossler/md-table-buddy/issues
+[license-shield]: https://img.shields.io/github/license/thgossler/md-table-buddy.svg
+[license-url]: https://github.com/thgossler/md-table-buddy/blob/main/LICENSE.txt
