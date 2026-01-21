@@ -1,25 +1,25 @@
-# Markdown Table Buddy
+# Table Buddy
 
 [![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/md-table-buddy.md-table-buddy?style=flat-square&label=VS%20Code%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=md-table-buddy.md-table-buddy)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
-A Visual Studio Code extension that provides convenience tools for working with tables in Markdown files.
+A powerful Visual Studio Code extension for working with Markdown tables. Features unique capabilities like **compact mode**, **smart max-width formatting**, **row numbers**, **table transposition**, **smart mode detection**, and **multiple sort options** that you won't find in other extensions.
 
-## Features
+## ✨ Unique Features
 
-### Compact Table
+### 🗜️ Compact Tables
 
-Removes unnecessary whitespace from a markdown table, minimizing column sizes per line. Place your cursor inside a table and run the command.
+Unlike other extensions that only "prettify" tables, Table Buddy offers true **compact mode** - minimizing whitespace for cleaner diffs and smaller file sizes.
 
-**Before:**
+**Before (formatted):**
 ```markdown
-| Name       |   Age   |    City        |
-|------------|---------|----------------|
-| John Doe   |   30    | New York       |
-| Jane Smith |   25    | Los Angeles    |
+| Name       | Age | City        |
+|------------|-----|-------------|
+| John Doe   | 30  | New York    |
+| Jane Smith | 25  | Los Angeles |
 ```
 
-**After:**
+**After (compact):**
 ```markdown
 |Name|Age|City|
 |---|---|---|
@@ -27,141 +27,320 @@ Removes unnecessary whitespace from a markdown table, minimizing column sizes pe
 |Jane Smith|25|Los Angeles|
 ```
 
-### Compact All Tables
+**Compact with padding (configurable):**
+```markdown
+| Name | Age | City |
+| --- | --- | --- |
+| John Doe | 30 | New York |
+| Jane Smith | 25 | Los Angeles |
+```
 
-Compacts all tables in the current Markdown document at once.
+### 📏 Smart Max-Width Formatting
 
-## Usage
+Keep your tables readable within a configurable maximum width **without truncating long content**. Table Buddy intelligently formats tables so that:
+
+- Columns are aligned and padded to fit within `maxWidth`
+- Rows with long content gracefully exceed the limit rather than being truncated
+- Short rows remain beautifully aligned
+
+**With `maxWidth: 80`:**
+```markdown
+| ID | Name            | Description                               |
+| -- | --------------- | ----------------------------------------- |
+| 1  | Widget          | A small component                         |
+| 2  | Super Long Item | This description is very long and will exceed the max width limit naturally |
+| 3  | Gadget          | Another component                         |
+```
+
+The separator and short rows stay within 80 characters, while row 2's long content is preserved without breaking the table structure.
+
+### 🔢 Row Numbers
+
+Automatically add, update, or remove row numbers - a feature unique to Table Buddy.
+
+**Add Row Numbers:**
+```markdown
+| # | Name       | Age | City        |
+|--:|------------|-----|-------------|
+| 1 | John Doe   | 30  | New York    |
+| 2 | Jane Smith | 25  | Los Angeles |
+| 3 | Bob Wilson | 35  | Chicago     |
+```
+
+- Configurable starting number (default: 1)
+- Configurable header text (default: "#")
+- Configurable alignment (default: right)
+- Numbers auto-update when rows are added/removed
+
+### 🔄 Transpose Table
+
+Swap rows and columns instantly - perfect for reorganizing data.
+
+**Before:**
+```markdown
+| Metric  | Q1  | Q2  | Q3  |
+|---------|-----|-----|-----|
+| Sales   | 100 | 150 | 200 |
+| Costs   | 80  | 90  | 110 |
+```
+
+**After transpose:**
+```markdown
+| Metric | Sales | Costs |
+|--------|-------|-------|
+| Q1     | 100   | 80    |
+| Q2     | 150   | 90    |
+| Q3     | 200   | 110   |
+```
+
+### 🎯 Smart Mode Detection
+
+Table Buddy automatically detects whether your table is in **compact** or **formatted** mode and preserves that style after operations. No more tables unexpectedly switching formats!
+
+- Operations like sort, add row numbers, transpose, etc. respect the original table style
+- Tolerant detection handles minor inconsistencies
+- Configure format-on-save to auto-format while preserving each table's mode
+
+### 📋 Duplicate Rows
+
+Quickly duplicate any data row with a single command - great for creating similar entries.
+
+### 📊 Multiple Sort Options
+
+Four different sort modes for complete control:
+
+| Sort Type | Description | Example |
+|-----------|-------------|---------|
+| **Text Ascending** | A → Z | apple, banana, cherry |
+| **Text Descending** | Z → A | cherry, banana, apple |
+| **Numeric Ascending** | 0 → 9 | 1, 2, 10, 20, 100 |
+| **Numeric Descending** | 9 → 0 | 100, 20, 10, 2, 1 |
+
+**Note:** Numeric sort correctly handles numbers (10 comes after 2), unlike pure text sorting.
+
+---
+
+## 📋 All Features
+
+### Table Formatting
+- **Compact Table** - Minimize whitespace (single table or all tables)
+- **Format Table** - Beautify with alignment (single table or all tables)
+- **Format on Save** - Auto-format tables when saving (respects mode)
+
+### Row Operations
+- **Insert Row Above/Below** - Add new rows at cursor position
+- **Remove Row** - Delete current row
+- **Move Row Up/Down** - Reorder rows
+- **Duplicate Row** - Copy current row
+- **Add/Remove Row Numbers** - Automatic numbering
+- **Auto-insert on Enter** - New row when pressing Enter in last row
+
+### Column Operations
+- **Insert Column Left/Right** - Add new columns
+- **Remove Column** - Delete current column
+- **Move Column Left/Right** - Reorder columns
+- **Align Column** - Set left, center, or right alignment
+- **Auto-insert on Tab** - New column when pressing Tab at end of row
+
+### Sorting
+- **Sort Ascending** - Text sort A-Z
+- **Sort Descending** - Text sort Z-A
+- **Sort Numeric Ascending** - Number sort 0-9
+- **Sort Numeric Descending** - Number sort 9-0
+
+### Data Conversion
+- **Transpose Table** - Swap rows and columns
+- **CSV to Table** - Import CSV/TSV data
+- **Table to CSV** - Export to CSV format (copy or replace)
+- **Paste from Excel** - Paste clipboard data as table
+- **Convert to HTML** - Export as HTML table (copy or replace)
+
+### Selection & Copy
+- **Select Row** - Select entire current row
+- **Select Column** - Multi-cursor select entire column
+- **Copy Row** - Copy row values to clipboard (multi-line, comma, or semicolon separated)
+- **Copy Column** - Copy column values to clipboard (multi-line, comma, or semicolon separated)
+
+### Navigation
+| Key | Action |
+|-----|--------|
+| `Tab` | Navigate to next cell (auto-insert column at end of row) |
+| `Shift+Tab` | Navigate to previous cell |
+| `Enter` | Navigate to cell below (auto-insert row in last row) |
+
+### Smart Features
+- **Ignore Code Blocks** - Tables in ``` blocks are untouched
+- **Mode Detection** - Preserves compact vs formatted style
+- **Create New Table** - Quick-start with configurable dimensions
+
+---
+
+## 🚀 Usage
 
 ### Context Menu
-
-1. Open a Markdown file
-2. Right-click in the editor
-3. Select **Markdown Table Buddy** submenu
-4. Choose **Compact Table** or **Compact All Tables**
+1. Right-click in a Markdown table
+2. Select **Markdown Table Buddy** submenu
+3. Choose your command
 
 ### Command Palette
+1. Press `Cmd+Shift+P` (macOS) / `Ctrl+Shift+P` (Windows/Linux)
+2. Type "Table Buddy" to see all commands
 
-1. Open a Markdown file
-2. Press `Cmd+Shift+P` (macOS) or `Ctrl+Shift+P` (Windows/Linux)
-3. Type "Markdown Table Buddy" to see available commands
-4. Select the desired command
+### Keyboard Navigation
+Just use `Tab`, `Shift+Tab`, and `Enter` to navigate cells naturally.
 
-## Commands
+### Custom Keyboard Shortcuts
+All Table Buddy commands can be assigned custom keyboard shortcuts. Open **Keyboard Shortcuts** (`Cmd+K Cmd+S` on macOS / `Ctrl+K Ctrl+S` on Windows/Linux), search for "Table Buddy", and assign your preferred shortcuts.
+
+---
+
+## ⚙️ Settings
+
+Copy this to your `settings.json` and customize as needed:
+
+```json
+"md-table-buddy": {
+    "fileExtensions": [".md"],
+    "formatOnSave": false,
+    "ignoreCodeBlocks": true,
+    "autoInsertColumnOnTab": true,
+    "autoInsertRowOnEnter": true,
+    "compactTable": {
+        "cellPadding": true,
+        "separatorPadding": true,
+        "alignSeparatorWithHeader": true
+    },
+    "formatTable": {
+        "maxWidth": 0,
+        "cellPadding": true,
+        "separatorPadding": true,
+        "preserveAlignment": true
+    },
+    "rowNumbers": {
+        "startNumber": 1,
+        "headerText": "#",
+        "alignment": "right"
+    },
+    "sort": {
+        "keepHeaderRow": true
+    },
+    "csv": {
+        "delimiter": ",",
+        "hasHeader": true,
+        "trimCells": true,
+        "quoteStrings": "auto",
+        "includeHeader": true
+    }
+}
+```
+
+### General
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `fileExtensions` | `[".md"]` | File extensions to treat as Markdown |
+| `formatOnSave` | `false` | Auto-format tables on save |
+| `ignoreCodeBlocks` | `true` | Skip tables inside code blocks |
+| `autoInsertColumnOnTab` | `true` | Insert column when Tab at last cell |
+| `autoInsertRowOnEnter` | `true` | Insert row when Enter in last row |
+
+### Compact Table
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `compactTable.cellPadding` | `true` | Add space around cell content |
+| `compactTable.separatorPadding` | `true` | Add space in separator cells |
+| `compactTable.alignSeparatorWithHeader` | `true` | Match separator width to headers |
+
+### Format Table
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `formatTable.maxWidth` | `0` | Max table width (0 = unlimited) |
+| `formatTable.cellPadding` | `true` | Add space around cell content |
+| `formatTable.separatorPadding` | `true` | Add space in separator cells |
+| `formatTable.preserveAlignment` | `true` | Keep existing alignment markers |
+
+### Row Numbers
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `rowNumbers.startNumber` | `1` | Starting number |
+| `rowNumbers.headerText` | `"#"` | Header text for number column |
+| `rowNumbers.alignment` | `"right"` | Column alignment |
+
+### Sort
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `sort.keepHeaderRow` | `true` | Don't sort the header row |
+
+### CSV
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `csv.delimiter` | `","` | Delimiter character |
+| `csv.hasHeader` | `true` | First row is header |
+| `csv.trimCells` | `true` | Trim cell whitespace |
+| `csv.quoteStrings` | `"auto"` | When to quote: always/auto/never |
+| `csv.includeHeader` | `true` | Include header in export |
+
+---
+
+## 📝 Commands Reference
 
 | Command | Description |
 |---------|-------------|
-| `Markdown Table Buddy: Compact Table` | Compact the table at cursor position |
-| `Markdown Table Buddy: Compact All Tables` | Compact all tables in the document |
+| **Compact Table** | Compact table at cursor |
+| **Compact All Tables** | Compact all tables in document |
+| **Format Table** | Format table at cursor |
+| **Format All Tables** | Format all tables in document |
+| **Add/Update Row Numbers** | Add or update row numbers |
+| **Remove Row Numbers** | Remove the row number column |
+| **Sort Table Ascending** | Sort by current column (A-Z) |
+| **Sort Table Descending** | Sort by current column (Z-A) |
+| **Sort Table Numeric Ascending** | Sort by current column (0-9) |
+| **Sort Table Numeric Descending** | Sort by current column (9-0) |
+| **Insert Column Left/Right** | Add a new column |
+| **Remove Column** | Delete current column |
+| **Move Column Left/Right** | Reorder columns |
+| **Align Column Left/Center/Right** | Set column alignment |
+| **Insert Row Above/Below** | Add a new row |
+| **Remove Row** | Delete current row |
+| **Move Row Up/Down** | Reorder rows |
+| **Duplicate Row** | Copy current row |
+| **Transpose Table** | Swap rows and columns |
+| **Create New Table** | Insert a blank table |
+| **Paste Clipboard as Table** | Paste Excel/CSV data |
+| **Select Row/Column** | Select for editing |
+| **Copy Row/Column** | Copy values to clipboard |
+| **Convert CSV/TSV to Table** | Import from CSV/TSV |
+| **Convert Table to CSV** | Export to CSV (copy or replace) |
+| **Convert to HTML** | Export as HTML (copy or replace) |
 
-## Requirements
+---
+
+## 🔧 Requirements
 
 - Visual Studio Code 1.85.0 or higher
 - Works with Markdown files (`.md` by default, configurable)
 
-## Extension Settings
-
-This extension contributes the following settings:
-
-| Setting | Default | Description |
-|---------|---------|-------------|
-| `md-table-buddy.fileExtensions` | `[".md"]` | File extensions to treat as Markdown files (e.g., `[".md", ".mdx", ".markdown"]`) |
-| `md-table-buddy.compactTable.cellPadding` | `false` | Add a space at the start and end of each cell content (e.g., `\| cell \|` instead of `\|cell\|`) |
-| `md-table-buddy.compactTable.separatorPadding` | `false` | Add a space at the start and end of separator row cells (requires `cellPadding` to be enabled) |
-| `md-table-buddy.compactTable.alignSeparatorWithHeader` | `false` | Align separator row column widths with the header text widths |
-
-### Setting Examples
-
-**Default (all settings `false`):**
-```markdown
-|Name|Age|City|
-|---|---|---|
-|John|30|NYC|
-```
-
-**With `cellPadding: true`:**
-```markdown
-| Name | Age | City |
-|---|---|---|
-| John | 30 | NYC |
-```
-
-**With `cellPadding: true` and `separatorPadding: true`:**
-```markdown
-| Name | Age | City |
-| --- | --- | --- |
-| John | 30 | NYC |
-```
-
-**With `alignSeparatorWithHeader: true`:**
-```markdown
-|Name|Age|City|
-|----|---|----| 
-|John|30|NYC|
-```
-
-**With all settings `true`:**
-```markdown
-| Name | Age | City |
-| ---- | --- | ---- |
-| John | 30 | NYC |
-```
-
-## Known Issues
+## 📋 Known Issues
 
 - Tables must use the pipe (`|`) syntax
 - Tables must have a header separator row (e.g., `|---|---|`)
 
-## Roadmap
-
-Future features planned:
-- Format/beautify tables (align columns)
-- Sort table by column
-- Add/remove columns
-- Add/remove rows
-- Convert CSV to table
-- Table validation
-
-## Contributing
+## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## Development
-
-```bash
-# Install dependencies
-npm install
-
-# Compile TypeScript
-npm run compile
-
-# Watch for changes
-npm run watch
-
-# Run tests
-npm test
-
-# Lint
-npm run lint
-```
-
-## Release Notes
-
-### 0.1.0
-
-- Initial release
-- Added "Compact Table" command
-- Added "Compact All Tables" command
-- Context menu integration
-- Command palette integration
-
-## License
+## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.txt) file for details.
 

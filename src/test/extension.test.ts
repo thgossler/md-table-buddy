@@ -57,14 +57,14 @@ suite('Table Utils Test Suite', () => {
     });
 
     suite('compactTableRow', () => {
-        test('should compact regular rows without padding by default', () => {
+        test('should compact regular rows with padding by default', () => {
             const result = compactTableRow(['cell1', 'cell2', 'cell3'], false);
-            assert.strictEqual(result, '|cell1|cell2|cell3|');
+            assert.strictEqual(result, '| cell1 | cell2 | cell3 |');
         });
 
-        test('should compact separator rows with alignment', () => {
-            assert.strictEqual(compactTableRow([':---', '---:', ':---:'], true), '|:---|---:|:---:|');
-            assert.strictEqual(compactTableRow(['---', '---', '---'], true), '|---|---|---|');
+        test('should compact separator rows with alignment and padding by default', () => {
+            assert.strictEqual(compactTableRow([':---', '---:', ':---:'], true), '| :-- | --: | :-: |');
+            assert.strictEqual(compactTableRow(['---', '---', '---'], true), '| --- | --- | --- |');
         });
 
         test('should add cell padding when option enabled', () => {
@@ -76,7 +76,7 @@ suite('Table Utils Test Suite', () => {
         test('should add separator padding when both options enabled', () => {
             const options: CompactOptions = { cellPadding: true, separatorPadding: true, alignSeparatorWithHeader: false };
             const result = compactTableRow(['---', ':---:'], true, options);
-            assert.strictEqual(result, '| --- | :---: |');
+            assert.strictEqual(result, '| --- | :-: |');
         });
 
         test('should not add separator padding when only separatorPadding enabled', () => {
@@ -135,9 +135,9 @@ suite('Table Utils Test Suite', () => {
             const tables = findTables(lines);
             const compacted = compactTable(tables[0]);
             assert.deepStrictEqual(compacted, [
-                '|Header1|Header2|',
-                '|---|---|',
-                '|Cell1|Cell2|'
+                '| Header1 | Header2 |',
+                '| ------- | ------- |',
+                '| Cell1 | Cell2 |'
             ]);
         });
 
