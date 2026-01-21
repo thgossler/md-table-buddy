@@ -23,6 +23,9 @@ on:
 # Disabled by default - remove this condition to enable
 # if: false
 
+permissions:
+  contents: write
+
 jobs:
   publish:
     runs-on: ubuntu-latest
