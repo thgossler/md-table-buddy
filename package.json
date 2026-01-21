@@ -2,7 +2,7 @@
   "name": "md-table-buddy",
   "displayName": "Table Buddy",
   "description": "Convenience tools for working with tables in Markdown files",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "publisher": "thgossler",
   "repository": {
     "type": "git",
