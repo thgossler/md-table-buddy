@@ -6,6 +6,7 @@
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
+[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/md-table-buddy.md-table-buddy?style=flat-square&label=VS%20Code%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=md-table-buddy.md-table-buddy)
 
 </div>
 
@@ -32,9 +33,6 @@
 </div>
 
 # Introduction
-
-[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/md-table-buddy.md-table-buddy?style=flat-square&label=VS%20Code%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=md-table-buddy.md-table-buddy)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
 A powerful Visual Studio Code extension for working with Markdown tables. Features unique capabilities like **compact mode**, **smart max-width formatting**, **row numbers**, **table transposition**, **smart mode detection**, and **multiple sort options** that you won't find in other extensions.
 
