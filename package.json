@@ -2,7 +2,7 @@
   "name": "md-table-buddy",
   "displayName": "Table Buddy",
   "description": "Convenience tools for working with tables in Markdown files",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "publisher": "thgossler",
   "repository": {
     "type": "git",
@@ -547,7 +547,9 @@
           "items": {
             "type": "string"
           },
-          "default": [".md"],
+          "default": [
+            ".md"
+          ],
           "description": "File extensions to treat as Markdown files (e.g., ['.md', '.mdx', '.markdown'])"
         },
         "md-table-buddy.compactTable.cellPadding": {
@@ -607,7 +609,11 @@
         },
         "md-table-buddy.rowNumbers.alignment": {
           "type": "string",
-          "enum": ["left", "center", "right"],
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ],
           "default": "right",
           "description": "Alignment for the row number column"
         },
@@ -633,7 +639,11 @@
         },
         "md-table-buddy.csv.quoteStrings": {
           "type": "string",
-          "enum": ["always", "auto", "never"],
+          "enum": [
+            "always",
+            "auto",
+            "never"
+          ],
           "default": "auto",
           "description": "When to quote strings in CSV output"
         },
