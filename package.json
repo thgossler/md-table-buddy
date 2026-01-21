@@ -2,11 +2,11 @@
   "name": "md-table-buddy",
   "displayName": "Table Buddy",
   "description": "Convenience tools for working with tables in Markdown files",
-  "version": "0.1.0",
-  "publisher": "md-table-buddy",
+  "version": "0.4.3",
+  "publisher": "thgossler",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/md-table-buddy"
+    "url": "https://github.com/thgossler/md-table-buddy"
   },
   "license": "MIT",
   "icon": "images/icon.png",
