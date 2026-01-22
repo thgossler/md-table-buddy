@@ -35,187 +35,187 @@
     "commands": [
       {
         "command": "md-table-buddy.compactTable",
-        "title": "Compact Table",
+        "title": "%command.compactTable%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.compactAllTables",
-        "title": "Compact All Tables",
+        "title": "%command.compactAllTables%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.formatTable",
-        "title": "Format Table",
+        "title": "%command.formatTable%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.formatAllTables",
-        "title": "Format All Tables",
+        "title": "%command.formatAllTables%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.addRowNumbers",
-        "title": "Add/Update Row Numbers",
+        "title": "%command.addRowNumbers%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.removeRowNumbers",
-        "title": "Remove Row Numbers",
+        "title": "%command.removeRowNumbers%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.sortTableAscending",
-        "title": "Sort Table Ascending (by current column)",
+        "title": "%command.sortTableAscending%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.sortTableDescending",
-        "title": "Sort Table Descending (by current column)",
+        "title": "%command.sortTableDescending%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.sortTableNumericAscending",
-        "title": "Sort Table Numeric Ascending (by current column)",
+        "title": "%command.sortTableNumericAscending%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.sortTableNumericDescending",
-        "title": "Sort Table Numeric Descending (by current column)",
+        "title": "%command.sortTableNumericDescending%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.insertColumnLeft",
-        "title": "Insert Column Left",
+        "title": "%command.insertColumnLeft%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.insertColumnRight",
-        "title": "Insert Column Right",
+        "title": "%command.insertColumnRight%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.removeColumn",
-        "title": "Remove Column",
+        "title": "%command.removeColumn%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.moveColumnLeft",
-        "title": "Move Column Left",
+        "title": "%command.moveColumnLeft%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.moveColumnRight",
-        "title": "Move Column Right",
+        "title": "%command.moveColumnRight%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.alignColumnLeft",
-        "title": "Align Column Left",
+        "title": "%command.alignColumnLeft%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.alignColumnCenter",
-        "title": "Align Column Center",
+        "title": "%command.alignColumnCenter%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.alignColumnRight",
-        "title": "Align Column Right",
+        "title": "%command.alignColumnRight%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.insertRowAbove",
-        "title": "Insert Row Above",
+        "title": "%command.insertRowAbove%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.insertRowBelow",
-        "title": "Insert Row Below",
+        "title": "%command.insertRowBelow%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.removeRow",
-        "title": "Remove Row",
+        "title": "%command.removeRow%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.moveRowUp",
-        "title": "Move Row Up",
+        "title": "%command.moveRowUp%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.moveRowDown",
-        "title": "Move Row Down",
+        "title": "%command.moveRowDown%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.duplicateRow",
-        "title": "Duplicate Row",
+        "title": "%command.duplicateRow%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.transposeTable",
-        "title": "Transpose Table",
+        "title": "%command.transposeTable%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.convertCsvToTable",
-        "title": "Convert CSV/TSV to Table",
+        "title": "%command.convertCsvToTable%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.convertTableToCsv",
-        "title": "Convert Table to CSV",
+        "title": "%command.convertTableToCsv%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.navigateNextCell",
-        "title": "Navigate to Next Cell",
+        "title": "%command.navigateNextCell%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.navigatePrevCell",
-        "title": "Navigate to Previous Cell",
+        "title": "%command.navigatePrevCell%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.navigateCellBelow",
-        "title": "Navigate to Cell Below",
+        "title": "%command.navigateCellBelow%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.createTable",
-        "title": "Create New Table",
+        "title": "%command.createTable%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.pasteAsTable",
-        "title": "Paste Clipboard as Table",
+        "title": "%command.pasteAsTable%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.selectRow",
-        "title": "Select Row",
+        "title": "%command.selectRow%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.selectColumn",
-        "title": "Select Column",
+        "title": "%command.selectColumn%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.copyRow",
-        "title": "Copy Row",
+        "title": "%command.copyRow%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.copyColumn",
-        "title": "Copy Column",
+        "title": "%command.copyColumn%",
         "category": "Table Buddy"
       },
       {
         "command": "md-table-buddy.convertToHtml",
-        "title": "Convert Table to HTML",
+        "title": "%command.convertToHtml%",
         "category": "Table Buddy"
       }
     ],
@@ -540,7 +540,7 @@
       }
     ],
     "configuration": {
-      "title": "Markdown Table Buddy",
+      "title": "%configuration.title%",
       "properties": {
         "md-table-buddy.fileExtensions": {
           "type": "array",
@@ -550,62 +550,62 @@
           "default": [
             ".md"
           ],
-          "description": "File extensions to treat as Markdown files (e.g., ['.md', '.mdx', '.markdown'])"
+          "description": "%configuration.fileExtensions%"
         },
         "md-table-buddy.compactTable.cellPadding": {
           "type": "boolean",
           "default": true,
-          "description": "Add a space at the start and end of each cell content"
+          "description": "%configuration.compactTable.cellPadding%"
         },
         "md-table-buddy.compactTable.separatorPadding": {
           "type": "boolean",
           "default": true,
-          "description": "Add a space at the start and end of separator row cells"
+          "description": "%configuration.compactTable.separatorPadding%"
         },
         "md-table-buddy.compactTable.alignSeparatorWithHeader": {
           "type": "boolean",
           "default": true,
-          "description": "Align separator row column widths with the header text widths"
+          "description": "%configuration.compactTable.alignSeparatorWithHeader%"
         },
         "md-table-buddy.compactTable.keepSeparatorRatios": {
           "type": "boolean",
           "default": false,
-          "description": "Preserve original separator length ratios (for Pandoc column width hints)"
+          "description": "%configuration.compactTable.keepSeparatorRatios%"
         },
         "md-table-buddy.formatTable.maxWidth": {
           "type": "number",
           "default": 0,
-          "description": "Maximum table width (0 = no limit)"
+          "description": "%configuration.formatTable.maxWidth%"
         },
         "md-table-buddy.formatTable.cellPadding": {
           "type": "boolean",
           "default": true,
-          "description": "Add a space at the start and end of each cell content"
+          "description": "%configuration.formatTable.cellPadding%"
         },
         "md-table-buddy.formatTable.separatorPadding": {
           "type": "boolean",
           "default": true,
-          "description": "Add a space at the start and end of separator row cells"
+          "description": "%configuration.formatTable.separatorPadding%"
         },
         "md-table-buddy.formatTable.preserveAlignment": {
           "type": "boolean",
           "default": true,
-          "description": "Preserve existing column alignment markers"
+          "description": "%configuration.formatTable.preserveAlignment%"
         },
         "md-table-buddy.formatTable.keepSeparatorRatios": {
           "type": "boolean",
           "default": false,
-          "description": "Preserve original separator length ratios (for Pandoc column width hints)"
+          "description": "%configuration.formatTable.keepSeparatorRatios%"
         },
         "md-table-buddy.rowNumbers.startNumber": {
           "type": "number",
           "default": 1,
-          "description": "Starting number for row numbering"
+          "description": "%configuration.rowNumbers.startNumber%"
         },
         "md-table-buddy.rowNumbers.headerText": {
           "type": "string",
           "default": "#",
-          "description": "Header text for the row number column"
+          "description": "%configuration.rowNumbers.headerText%"
         },
         "md-table-buddy.rowNumbers.alignment": {
           "type": "string",
@@ -615,27 +615,27 @@
             "right"
           ],
           "default": "right",
-          "description": "Alignment for the row number column"
+          "description": "%configuration.rowNumbers.alignment%"
         },
         "md-table-buddy.sort.keepHeaderRow": {
           "type": "boolean",
           "default": true,
-          "description": "Keep header row in place when sorting"
+          "description": "%configuration.sort.keepHeaderRow%"
         },
         "md-table-buddy.csv.delimiter": {
           "type": "string",
           "default": ",",
-          "description": "CSV delimiter character"
+          "description": "%configuration.csv.delimiter%"
         },
         "md-table-buddy.csv.hasHeader": {
           "type": "boolean",
           "default": true,
-          "description": "Treat first row of CSV as header"
+          "description": "%configuration.csv.hasHeader%"
         },
         "md-table-buddy.csv.trimCells": {
           "type": "boolean",
           "default": true,
-          "description": "Trim whitespace from CSV cells"
+          "description": "%configuration.csv.trimCells%"
         },
         "md-table-buddy.csv.quoteStrings": {
           "type": "string",
@@ -645,32 +645,32 @@
             "never"
           ],
           "default": "auto",
-          "description": "When to quote strings in CSV output"
+          "description": "%configuration.csv.quoteStrings%"
         },
         "md-table-buddy.csv.includeHeader": {
           "type": "boolean",
           "default": true,
-          "description": "Include header row when converting to CSV"
+          "description": "%configuration.csv.includeHeader%"
         },
         "md-table-buddy.formatOnSave": {
           "type": "boolean",
           "default": false,
-          "description": "Automatically format tables on save (respects each table's current mode: compact or formatted)"
+          "description": "%configuration.formatOnSave%"
         },
         "md-table-buddy.autoInsertColumnOnTab": {
           "type": "boolean",
           "default": true,
-          "description": "Automatically insert a new column when pressing Tab at the last cell of any row"
+          "description": "%configuration.autoInsertColumnOnTab%"
         },
         "md-table-buddy.autoInsertRowOnEnter": {
           "type": "boolean",
           "default": true,
-          "description": "Automatically insert a new row when pressing Enter in the last row"
+          "description": "%configuration.autoInsertRowOnEnter%"
         },
         "md-table-buddy.ignoreCodeBlocks": {
           "type": "boolean",
           "default": true,
-          "description": "Ignore tables inside code blocks (``` or ~~~)"
+          "description": "%configuration.ignoreCodeBlocks%"
         }
       }
     }

@@ -34,7 +34,11 @@
 
 # Introduction
 
-A powerful Visual Studio Code extension for working with Markdown tables. Features unique capabilities like **compact mode**, **smart max-width formatting**, **row numbers**, **table transposition**, **smart mode detection**, and **multiple sort options** that you won't find in other extensions.
+A powerful Visual Studio Code extension for working with Markdown tables. Features unique capabilities like **compact mode**, **smart max-width formatting**, **row numbers**, **table transposition**, **smart mode detection**, and **multiple sort options** that you won't find in other extensions. 
+
+Supported languages: English, German, French, Spanish, Japanese and Simplified Chinese.
+
+Don't forget to rate the extension!
 
 ## ✨ Unique Features
 
@@ -163,7 +167,7 @@ Quickly duplicate any data row with a single command - great for creating simila
 Four different sort modes for complete control:
 
 | Sort Type | Description | Example |
-|-----------|-------------|---------|
+| --------- | ----------- | ------- |
 | **Text Ascending** | A → Z | apple, banana, cherry |
 | **Text Descending** | Z → A | cherry, banana, apple |
 | **Numeric Ascending** | 0 → 9 | 1, 2, 10, 20, 100 |
@@ -216,7 +220,7 @@ Four different sort modes for complete control:
 
 ### Navigation
 | Key | Action |
-|-----|--------|
+| --- | ------ |
 | `Tab` | Navigate to next cell (auto-insert column at end of row) |
 | `Shift+Tab` | Navigate to previous cell |
 | `Enter` | Navigate to cell below (auto-insert row in last row) |
@@ -292,7 +296,7 @@ Copy this to your `settings.json` and customize as needed:
 ### General
 
 | Setting | Default | Description |
-|---------|---------|-------------|
+| ------- | ------- | ---------- |
 | `fileExtensions` | `[".md"]` | File extensions to treat as Markdown |
 | `formatOnSave` | `false` | Auto-format tables on save |
 | `ignoreCodeBlocks` | `true` | Skip tables inside code blocks |
@@ -302,7 +306,7 @@ Copy this to your `settings.json` and customize as needed:
 ### Compact Table
 
 | Setting | Default | Description |
-|---------|---------|-------------|
+| ------- | ------- | ---------- |
 | `compactTable.cellPadding` | `true` | Add space around cell content |
 | `compactTable.separatorPadding` | `true` | Add space in separator cells |
 | `compactTable.alignSeparatorWithHeader` | `true` | Match separator width to headers |
@@ -311,7 +315,7 @@ Copy this to your `settings.json` and customize as needed:
 ### Format Table
 
 | Setting | Default | Description |
-|---------|---------|-------------|
+| ------- | ------- | ---------- |
 | `formatTable.maxWidth` | `0` | Max table width (0 = unlimited) |
 | `formatTable.cellPadding` | `true` | Add space around cell content |
 | `formatTable.separatorPadding` | `true` | Add space in separator cells |
@@ -321,7 +325,7 @@ Copy this to your `settings.json` and customize as needed:
 ### Row Numbers
 
 | Setting | Default | Description |
-|---------|---------|-------------|
+| ------- | ------- | ---------- |
 | `rowNumbers.startNumber` | `1` | Starting number |
 | `rowNumbers.headerText` | `"#"` | Header text for number column |
 | `rowNumbers.alignment` | `"right"` | Column alignment |
@@ -329,13 +333,13 @@ Copy this to your `settings.json` and customize as needed:
 ### Sort
 
 | Setting | Default | Description |
-|---------|---------|-------------|
+| ------- | ------- | ---------- |
 | `sort.keepHeaderRow` | `true` | Don't sort the header row |
 
 ### CSV
 
 | Setting | Default | Description |
-|---------|---------|-------------|
+| ------- | ------- | ---------- |
 | `csv.delimiter` | `","` | Delimiter character |
 | `csv.hasHeader` | `true` | First row is header |
 | `csv.trimCells` | `true` | Trim cell whitespace |
@@ -347,7 +351,7 @@ Copy this to your `settings.json` and customize as needed:
 ## 📝 Commands Reference
 
 | Command | Description |
-|---------|-------------|
+| ------- | ----------- |
 | **Compact Table** | Compact table at cursor |
 | **Compact All Tables** | Compact all tables in document |
 | **Format Table** | Format table at cursor |
