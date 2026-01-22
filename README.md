@@ -6,7 +6,7 @@
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
-[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/md-table-buddy.md-table-buddy?style=flat-square&label=VS%20Code%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=md-table-buddy.md-table-buddy)
+[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/thgossler.md-table-buddy?style=flat-square&label=VS%20Code%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=thgossler.md-table-buddy)
 
 </div>
 
