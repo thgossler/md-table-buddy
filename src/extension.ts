@@ -40,9 +40,9 @@ import {
 function getCompactOptions(): CompactOptions {
     const config = vscode.workspace.getConfiguration('md-table-buddy.compactTable');
     return {
-        cellPadding: config.get<boolean>('cellPadding', false),
-        separatorPadding: config.get<boolean>('separatorPadding', false),
-        alignSeparatorWithHeader: config.get<boolean>('alignSeparatorWithHeader', false),
+        cellPadding: config.get<boolean>('cellPadding', true),
+        separatorPadding: config.get<boolean>('separatorPadding', true),
+        alignSeparatorWithHeader: config.get<boolean>('alignSeparatorWithHeader', true),
         keepSeparatorRatios: config.get<boolean>('keepSeparatorRatios', false)
     };
 }
@@ -340,6 +340,7 @@ export function activate(context: vscode.ExtensionContext) {
             if (!getFormatOnSave()) { return; }
             if (!isMarkdownFile(event.document)) { return; }
 
+            // Read current document state (includes any user edits to separator ratios)
             const lines = event.document.getText().split('\n');
             const ignoreCodeBlocks = getIgnoreCodeBlocks();
             const tables = findTables(lines, ignoreCodeBlocks);
@@ -347,6 +348,7 @@ export function activate(context: vscode.ExtensionContext) {
             if (tables.length === 0) { return; }
 
             // Process tables in reverse order to maintain line numbers
+            // Each table is parsed fresh, preserving current separator ratios
             const edits: vscode.TextEdit[] = [];
             for (let i = tables.length - 1; i >= 0; i--) {
                 const table = tables[i];

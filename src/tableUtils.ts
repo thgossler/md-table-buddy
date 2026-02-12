@@ -452,11 +452,23 @@ function createSeparatorCell(
  * @param targetTotalWidth The target total width to distribute (sum of all separator cell widths)
  * @returns Array of new widths for each separator cell (just the dashes+colons, no padding)
  */
+/**
+ * Calculates proportional separator widths based on the current separator row.
+ * IMPORTANT: This function reads the actual dash counts from the separator cells
+ * in the table being formatted. If a user manually edits the separator dashes
+ * to adjust Pandoc column width hints, those changes are preserved and scaled
+ * to fit the target width while maintaining the user's chosen ratios.
+ * 
+ * @param originalSeparators - Array of separator cells from the current table state
+ * @param targetTotalWidth - Total width to distribute across all separators
+ * @returns Array of widths proportional to the original separator lengths
+ */
 function calculateProportionalSeparatorWidths(
     originalSeparators: string[],
     targetTotalWidth: number
 ): number[] {
     // Get original lengths (the actual separator content length, e.g., ":---:" = 5)
+    // This reads the CURRENT state, including any user modifications
     const originalLengths = originalSeparators.map(cell => cell.trim().length);
     const originalTotal = originalLengths.reduce((sum, len) => sum + len, 0);
     
@@ -466,7 +478,7 @@ function calculateProportionalSeparatorWidths(
         return originalSeparators.map(() => perColumn);
     }
     
-    // Calculate proportional widths
+    // Calculate proportional widths maintaining current ratios
     const proportions = originalLengths.map(len => len / originalTotal);
     const newWidths = proportions.map(prop => Math.max(3, Math.round(prop * targetTotalWidth)));
     
@@ -561,202 +573,240 @@ export function formatTable(
     options: FormatOptions = getDefaultFormatOptions(),
     compactOptions: CompactOptions = getDefaultCompactOptions()
 ): string[] {
-    // Use table rows directly
     const processedRows = table.rows;
-    
-    // Calculate column widths based on content
     const columnCount = Math.max(...processedRows.map(row => row.length));
-    const columnWidths: number[] = new Array(columnCount).fill(3);
-    
-    // Calculate header widths separately (minimum for separator alignment)
-    const headerWidths: number[] = new Array(columnCount).fill(3);
-    if (processedRows.length > 0) {
-        for (let colIndex = 0; colIndex < processedRows[0].length; colIndex++) {
-            headerWidths[colIndex] = Math.max(3, processedRows[0][colIndex].length);
-        }
-    }
-    
-    // Always align columns in format command - calculate max widths
-    for (let rowIndex = 0; rowIndex < processedRows.length; rowIndex++) {
-        if (rowIndex === table.separatorIndex) {
-            continue;
-        }
-        for (let colIndex = 0; colIndex < processedRows[rowIndex].length; colIndex++) {
-            columnWidths[colIndex] = Math.max(
-                columnWidths[colIndex], 
-                processedRows[rowIndex][colIndex].length
-            );
-        }
-    }
     
     // Get alignments
     const alignments = options.preserveAlignment ? table.alignments : [];
     
-    // For maxWidth formatting:
-    // 1. Calculate which columns GLOBALLY fit within maxWidth (based on max content widths)
-    // 2. Those columns are ALWAYS aligned across all rows
-    // 3. For the break column, calculate max width of FITTING cells only
-    // 4. Columns after the break point use actual cell content (compact)
+    // Determine break column index and calculate aligned column widths
+    // Strategy: accumulate columns until adding the next would exceed maxWidth
+    // Columns before break point: aligned based on max(header, data)
+    // Columns from break point onward: independently compacted
     
-    // Find the break column index - first column where accumulated width would exceed maxWidth
     let breakColumnIndex = columnCount; // Default: all columns fit
-    let accumulatedBeforeBreak = 1; // Width accumulated before break column
+    const columnWidths: number[] = new Array(columnCount).fill(3);
     const paddingPerCell = options.cellPadding ? 2 : 0;
     
     if (options.maxWidth > 0) {
         let accumulatedWidth = 1; // Start with leading |
         
         for (let colIndex = 0; colIndex < columnCount; colIndex++) {
-            const colWidth = columnWidths[colIndex] || 3;
-            const cellWidth = colWidth + paddingPerCell + 1; // +1 for |
+            // Calculate max width for this column (all rows)
+            let maxWidth = 3; // Minimum width
+            
+            for (let rowIndex = 0; rowIndex < processedRows.length; rowIndex++) {
+                if (rowIndex === table.separatorIndex) continue;
+                if (colIndex < processedRows[rowIndex].length) {
+                    maxWidth = Math.max(maxWidth, processedRows[rowIndex][colIndex].length);
+                }
+            }
+            
+            const cellWidth = maxWidth + paddingPerCell + 1; // +1 for |
             
             if (accumulatedWidth + cellWidth > options.maxWidth) {
+                // This column would exceed maxWidth - it becomes the break point
                 breakColumnIndex = colIndex;
-                accumulatedBeforeBreak = accumulatedWidth;
                 break;
             }
+            
+            columnWidths[colIndex] = maxWidth;
             accumulatedWidth += cellWidth;
+        }
+    } else {
+        // No maxWidth limit - calculate all column widths
+        for (let rowIndex = 0; rowIndex < processedRows.length; rowIndex++) {
+            if (rowIndex === table.separatorIndex) continue;
+            for (let colIndex = 0; colIndex < processedRows[rowIndex].length; colIndex++) {
+                columnWidths[colIndex] = Math.max(
+                    columnWidths[colIndex],
+                    processedRows[rowIndex][colIndex].length
+                );
+            }
         }
     }
     
-    // For the break column, calculate the max width of cells that FIT within maxWidth
-    // Cells that would cause the row to exceed maxWidth are excluded from this calculation
-    let breakColumnFittingWidth = 3; // Minimum width
-    if (breakColumnIndex < columnCount && options.maxWidth > 0) {
-        // Available width for break column content (excluding padding and |)
-        const availableWidth = options.maxWidth - accumulatedBeforeBreak - paddingPerCell - 1;
+    // Calculate stretched widths for overflow header columns
+    // When total header+data width < maxWidth, distribute space among overflow columns
+    // proportional to their text length, but only up to the actual content width
+    let stretchedOverflowWidths: number[] | undefined;
+    if (options.maxWidth > 0 && breakColumnIndex < columnCount && processedRows.length > 0) {
+        const headerRow = processedRows[0];
         
-        for (let rowIndex = 0; rowIndex < processedRows.length; rowIndex++) {
-            if (rowIndex === table.separatorIndex) continue;
-            
-            const cell = processedRows[rowIndex][breakColumnIndex] || '';
-            // Only include cells that fit within available width
-            if (cell.length <= availableWidth) {
-                breakColumnFittingWidth = Math.max(breakColumnFittingWidth, cell.length);
+        // Calculate total width used by aligned columns
+        let alignedWidth = 1; // Leading |
+        for (let i = 0; i < breakColumnIndex; i++) {
+            alignedWidth += columnWidths[i] + paddingPerCell + 1; // +1 for |
+        }
+        
+        // Calculate max width for each overflow column (max of header and all data rows)
+        const overflowMaxWidths: number[] = [];
+        for (let colIndex = breakColumnIndex; colIndex < columnCount; colIndex++) {
+            let maxWidth = 0;
+            for (let rowIndex = 0; rowIndex < processedRows.length; rowIndex++) {
+                if (rowIndex === table.separatorIndex) continue;
+                if (colIndex < processedRows[rowIndex].length) {
+                    maxWidth = Math.max(maxWidth, processedRows[rowIndex][colIndex].length);
+                }
             }
+            overflowMaxWidths.push(maxWidth);
+        }
+        
+        const overflowHeaderLengths: number[] = [];
+        let overflowHeaderTextWidth = 0;
+        for (let i = breakColumnIndex; i < headerRow.length; i++) {
+            const len = headerRow[i].length;
+            overflowHeaderLengths.push(len);
+            overflowHeaderTextWidth += len;
+        }
+        
+        // Calculate actual width needed for overflow columns (max of header and data)
+        const overflowColumnCount = headerRow.length - breakColumnIndex;
+        const overflowActualContentWidth = overflowMaxWidths.reduce((sum, w) => sum + w, 0);
+        const minOverflowWidth = overflowColumnCount * (paddingPerCell + 1); // pipes and padding
+        
+        // Total actual width used by table content
+        const totalActualWidth = alignedWidth + minOverflowWidth + overflowActualContentWidth;
+        
+        // Only stretch if total actual width < maxWidth
+        if (totalActualWidth < options.maxWidth && overflowHeaderTextWidth > 0) {
+            // Stretch to actual content width, not to maxWidth
+            const targetTotalWidth = Math.min(options.maxWidth, totalActualWidth);
+            const availableForOverflow = targetTotalWidth - alignedWidth - minOverflowWidth;
+            
+            // Distribute space proportionally based on header text length
+            stretchedOverflowWidths = overflowHeaderLengths.map(len => {
+                const proportion = len / overflowHeaderTextWidth;
+                return Math.max(len, Math.floor(proportion * availableForOverflow));
+            });
         }
     }
     
     // Calculate proportional separator widths if keepSeparatorRatios is enabled
+    // When enabled, maintain ratios across ALL columns
+    // IMPORTANT: The separator row is read from the current table state, so any
+    // manual edits to separator dashes (for Pandoc column width hints) are preserved
+    // This is calculated AFTER stretchedOverflowWidths so we can match actual content width
     let proportionalSeparatorWidths: number[] | undefined;
     if (options.keepSeparatorRatios && table.separatorIndex >= 0) {
-        const separatorRow = table.rows[table.separatorIndex];
-        // Calculate target total width = sum of column widths (the content widths)
-        const targetTotalWidth = columnWidths.reduce((sum, w) => sum + w, 0);
-        proportionalSeparatorWidths = calculateProportionalSeparatorWidths(separatorRow, targetTotalWidth);
+        const separatorRow = table.rows[table.separatorIndex]; // Current state with user edits
+        
+        if (options.maxWidth > 0) {
+            // Calculate target width based on actual table content width, not maxWidth
+            // This ensures separator doesn't stretch beyond actual content
+            const separatorPaddingPerCell = (options.separatorPadding && options.cellPadding) ? 2 : 0;
+            const pipesWidth = columnCount + 1; // Leading | plus one | per column
+            const paddingWidth = columnCount * separatorPaddingPerCell;
+            
+            // Calculate actual content width: aligned columns + overflow columns
+            let actualContentWidth = 0;
+            for (let i = 0; i < breakColumnIndex; i++) {
+                actualContentWidth += columnWidths[i];
+            }
+            if (stretchedOverflowWidths) {
+                actualContentWidth += stretchedOverflowWidths.reduce((sum, w) => sum + w, 0);
+            } else {
+                // No stretching - use minimum widths for overflow columns
+                for (let i = breakColumnIndex; i < columnCount; i++) {
+                    actualContentWidth += 3; // minimum width
+                }
+            }
+            
+            // Target width is the smaller of maxWidth and actual content width
+            const availableWidth = Math.min(
+                options.maxWidth - pipesWidth - paddingWidth,
+                actualContentWidth
+            );
+            
+            proportionalSeparatorWidths = calculateProportionalSeparatorWidths(separatorRow, Math.max(columnCount * 3, availableWidth));
+        } else {
+            // No maxWidth constraint - use column widths as target
+            const targetTotalWidth = columnWidths.reduce((sum, w) => sum + w, 0);
+            proportionalSeparatorWidths = calculateProportionalSeparatorWidths(separatorRow, targetTotalWidth);
+        }
     }
     
     // Format all rows
     return processedRows.map((row, rowIndex) => {
         if (rowIndex === table.separatorIndex) {
             // Format separator row
-            const headerRow = processedRows[0] || [];
-            
-            // If keepSeparatorRatios is enabled, use proportional widths
-            if (proportionalSeparatorWidths) {
-                const separatorCells = row.map((cell, colIndex) => {
-                    const width = proportionalSeparatorWidths![colIndex] || 3;
-                    const alignment = alignments[colIndex] || 'none';
-                    return createSeparatorCell(cell, width, options, alignment);
-                });
-                return '|' + separatorCells.join('|') + '|';
-            }
-            
-            // Standard separator formatting
-            
             const separatorCells = row.map((cell, colIndex) => {
-                const colWidth = columnWidths[colIndex] || 3;
-                const headerCell = headerRow[colIndex] || '';
                 const alignment = alignments[colIndex] || 'none';
                 
-                if (colIndex < breakColumnIndex) {
-                    // Column fits globally - use full width separator
-                    return createSeparatorCell(cell, colWidth, options, alignment);
-                } else if (colIndex === breakColumnIndex) {
-                    // Break column - use fitting width if header fits, compact if it doesn't
-                    if (headerCell.length <= breakColumnFittingWidth) {
-                        return createSeparatorCell(cell, breakColumnFittingWidth, options, alignment);
-                    } else {
-                        const headerWidth = headerCell.length || 3;
-                        return formatCompactSeparatorCell(cell, alignment, compactOptions, headerWidth);
-                    }
+                if (proportionalSeparatorWidths && colIndex < proportionalSeparatorWidths.length) {
+                    // Use proportional width (keepSeparatorRatios is enabled)
+                    const width = proportionalSeparatorWidths[colIndex];
+                    return createSeparatorCell(cell, width, options, alignment);
+                } else if (colIndex < breakColumnIndex) {
+                    // Column fits - use aligned width
+                    return createSeparatorCell(cell, columnWidths[colIndex], options, alignment);
                 } else {
-                    // Column after break - use compact separator (aligned to header text)
-                    const headerWidth = headerCell.length || 3;
-                    return formatCompactSeparatorCell(cell, alignment, compactOptions, headerWidth);
+                    // Overflow column - check if we have stretched width
+                    const overflowIndex = colIndex - breakColumnIndex;
+                    if (stretchedOverflowWidths && overflowIndex < stretchedOverflowWidths.length) {
+                        // Use stretched width to match header
+                        return createSeparatorCell(cell, stretchedOverflowWidths[overflowIndex], compactOptions, alignment);
+                    } else {
+                        // Use minimum 3-dash separator
+                        return createMinimalSeparatorCell(alignment, compactOptions);
+                    }
                 }
             });
             return '|' + separatorCells.join('|') + '|';
         }
         
-        // Header row with maxWidth
-        if (rowIndex === 0 && options.maxWidth > 0) {
+        // Format header row (with stretching for overflow columns)
+        if (rowIndex === 0) {
             const formattedCells = row.map((cell, colIndex) => {
-                const colWidth = columnWidths[colIndex] || cell.length;
                 const alignment = alignments[colIndex] || 'left';
                 
                 if (colIndex < breakColumnIndex) {
-                    // Column fits globally - always pad to colWidth
-                    const paddedCell = padCell(cell, colWidth, alignment);
+                    // Column fits - align to column width
+                    const paddedCell = padCell(cell, columnWidths[colIndex], alignment);
                     if (options.cellPadding) {
                         return ' ' + paddedCell + ' ';
                     }
                     return paddedCell;
-                } else if (colIndex === breakColumnIndex) {
-                    // Break column - pad to fitting width if cell fits, compact if it doesn't
-                    if (cell.length <= breakColumnFittingWidth) {
-                        const paddedCell = padCell(cell, breakColumnFittingWidth, alignment);
+                } else {
+                    // Overflow column - check if we have stretched width
+                    const overflowIndex = colIndex - breakColumnIndex;
+                    if (stretchedOverflowWidths && overflowIndex < stretchedOverflowWidths.length) {
+                        // Use stretched width
+                        const paddedCell = padCell(cell, stretchedOverflowWidths[overflowIndex], alignment);
                         if (options.cellPadding) {
                             return ' ' + paddedCell + ' ';
                         }
                         return paddedCell;
                     } else {
+                        // Use actual cell content (compact)
                         if (compactOptions.cellPadding) {
                             return ' ' + cell + ' ';
                         }
                         return cell;
                     }
-                } else {
-                    // Column after break - use compact formatting (actual content)
-                    if (compactOptions.cellPadding) {
-                        return ' ' + cell + ' ';
-                    }
-                    return cell;
                 }
             });
             return '|' + formattedCells.join('|') + '|';
         }
         
-        // Header row without maxWidth - use full column widths
-        if (rowIndex === 0) {
-            const formattedCells = row.map((cell, colIndex) => {
-                const width = columnWidths[colIndex] || cell.length;
-                const alignment = alignments[colIndex] || 'left';
-                const paddedCell = padCell(cell, width, alignment);
-                
+        // Format data rows (overflow columns remain compacted)
+        const formattedCells = row.map((cell, colIndex) => {
+            const alignment = alignments[colIndex] || 'left';
+            
+            if (colIndex < breakColumnIndex) {
+                // Column fits - align to column width
+                const paddedCell = padCell(cell, columnWidths[colIndex], alignment);
                 if (options.cellPadding) {
                     return ' ' + paddedCell + ' ';
                 }
                 return paddedCell;
-            });
-            return '|' + formattedCells.join('|') + '|';
-        }
-        
-        // Format data row with maxWidth-aware logic
-        if (options.maxWidth > 0) {
-            return formatRowWithMaxWidth(row, columnWidths, alignments, options, compactOptions, breakColumnIndex, breakColumnFittingWidth);
-        }
-        
-        // Standard formatting without maxWidth
-        const formattedCells = row.map((cell, colIndex) => {
-            const width = columnWidths[colIndex] || cell.length;
-            const alignment = alignments[colIndex] || 'left';
-            const paddedCell = padCell(cell, width, alignment);
-            
-            if (options.cellPadding) {
-                return ' ' + paddedCell + ' ';
+            } else {
+                // Overflow column - use actual cell content (compact)
+                if (compactOptions.cellPadding) {
+                    return ' ' + cell + ' ';
+                }
+                return cell;
             }
-            return paddedCell;
         });
         
         return '|' + formattedCells.join('|') + '|';
@@ -799,63 +849,32 @@ function formatCompactSeparatorCell(
 }
 
 /**
- * Formats a row with maxWidth constraint.
- * Columns before breakColumnIndex are always padded to column width.
- * Break column: padded to breakColumnFittingWidth if cell fits, compact if it doesn't.
- * Columns after breakColumnIndex use actual cell content (compact).
+ * Creates a minimal separator cell (3 dashes minimum) for overflow columns
  */
-function formatRowWithMaxWidth(
-    row: string[],
-    columnWidths: number[],
-    alignments: ColumnAlignment[],
-    options: FormatOptions,
-    compactOptions: CompactOptions,
-    breakColumnIndex: number,
-    breakColumnFittingWidth: number
+function createMinimalSeparatorCell(
+    alignment: ColumnAlignment,
+    compactOptions: CompactOptions
 ): string {
-    const formattedCells: string[] = [];
+    let separator: string;
     
-    for (let colIndex = 0; colIndex < row.length; colIndex++) {
-        const cell = row[colIndex];
-        const colWidth = columnWidths[colIndex] || cell.length;
-        const alignment = alignments[colIndex] || 'left';
-        
-        if (colIndex < breakColumnIndex) {
-            // Column fits globally - always pad to colWidth
-            const paddedCell = padCell(cell, colWidth, alignment);
-            if (options.cellPadding) {
-                formattedCells.push(' ' + paddedCell + ' ');
-            } else {
-                formattedCells.push(paddedCell);
-            }
-        } else if (colIndex === breakColumnIndex) {
-            // Break column - pad if cell fits within breakColumnFittingWidth, compact if it doesn't
-            if (cell.length <= breakColumnFittingWidth) {
-                const paddedCell = padCell(cell, breakColumnFittingWidth, alignment);
-                if (options.cellPadding) {
-                    formattedCells.push(' ' + paddedCell + ' ');
-                } else {
-                    formattedCells.push(paddedCell);
-                }
-            } else {
-                // Cell exceeds fitting width - use compact
-                if (compactOptions.cellPadding) {
-                    formattedCells.push(' ' + cell + ' ');
-                } else {
-                    formattedCells.push(cell);
-                }
-            }
-        } else {
-            // Column after break - use compact formatting (actual content)
-            if (compactOptions.cellPadding) {
-                formattedCells.push(' ' + cell + ' ');
-            } else {
-                formattedCells.push(cell);
-            }
-        }
+    // Create minimum separator based on alignment
+    // Minimum is 3 characters: --- or :-- or --: or :-:
+    if (alignment === 'left') {
+        separator = ':--';
+    } else if (alignment === 'right') {
+        separator = '--:';
+    } else if (alignment === 'center') {
+        separator = ':-:';
+    } else {
+        separator = '---';
     }
     
-    return '|' + formattedCells.join('|') + '|';
+    // Apply padding based on compactOptions
+    if (compactOptions.separatorPadding && compactOptions.cellPadding) {
+        return ' ' + separator + ' ';
+    }
+    
+    return separator;
 }
 
 // ============================================================================
