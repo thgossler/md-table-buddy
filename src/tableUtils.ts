@@ -482,6 +482,15 @@ function calculateProportionalSeparatorWidths(
     const proportions = originalLengths.map(len => len / originalTotal);
     const newWidths = proportions.map(prop => Math.max(3, Math.round(prop * targetTotalWidth)));
     
+    // Ensure total doesn't exceed target (round down adjustment if needed)
+    const actualTotal = newWidths.reduce((sum, w) => sum + w, 0);
+    if (actualTotal > targetTotalWidth) {
+        const excess = actualTotal - targetTotalWidth;
+        // Reduce the last column by the excess (ensure it stays at least 3)
+        const lastIndex = newWidths.length - 1;
+        newWidths[lastIndex] = Math.max(3, newWidths[lastIndex] - excess);
+    }
+    
     return newWidths;
 }
 
@@ -627,8 +636,8 @@ export function formatTable(
     }
     
     // Calculate stretched widths for overflow header columns
-    // When total header+data width < maxWidth, distribute space among overflow columns
-    // proportional to their text length, but only up to the actual content width
+    // When header row width < maxWidth, distribute space among overflow columns
+    // proportional to their text length
     let stretchedOverflowWidths: number[] | undefined;
     if (options.maxWidth > 0 && breakColumnIndex < columnCount && processedRows.length > 0) {
         const headerRow = processedRows[0];
@@ -639,19 +648,6 @@ export function formatTable(
             alignedWidth += columnWidths[i] + paddingPerCell + 1; // +1 for |
         }
         
-        // Calculate max width for each overflow column (max of header and all data rows)
-        const overflowMaxWidths: number[] = [];
-        for (let colIndex = breakColumnIndex; colIndex < columnCount; colIndex++) {
-            let maxWidth = 0;
-            for (let rowIndex = 0; rowIndex < processedRows.length; rowIndex++) {
-                if (rowIndex === table.separatorIndex) continue;
-                if (colIndex < processedRows[rowIndex].length) {
-                    maxWidth = Math.max(maxWidth, processedRows[rowIndex][colIndex].length);
-                }
-            }
-            overflowMaxWidths.push(maxWidth);
-        }
-        
         const overflowHeaderLengths: number[] = [];
         let overflowHeaderTextWidth = 0;
         for (let i = breakColumnIndex; i < headerRow.length; i++) {
@@ -660,19 +656,16 @@ export function formatTable(
             overflowHeaderTextWidth += len;
         }
         
-        // Calculate actual width needed for overflow columns (max of header and data)
+        // Calculate minimum width needed for overflow header columns (text + padding + pipes)
         const overflowColumnCount = headerRow.length - breakColumnIndex;
-        const overflowActualContentWidth = overflowMaxWidths.reduce((sum, w) => sum + w, 0);
         const minOverflowWidth = overflowColumnCount * (paddingPerCell + 1); // pipes and padding
         
-        // Total actual width used by table content
-        const totalActualWidth = alignedWidth + minOverflowWidth + overflowActualContentWidth;
+        // Total width of header row with minimum overflow columns
+        const headerRowWidth = alignedWidth + minOverflowWidth + overflowHeaderTextWidth;
         
-        // Only stretch if total actual width < maxWidth
-        if (totalActualWidth < options.maxWidth && overflowHeaderTextWidth > 0) {
-            // Stretch to actual content width, not to maxWidth
-            const targetTotalWidth = Math.min(options.maxWidth, totalActualWidth);
-            const availableForOverflow = targetTotalWidth - alignedWidth - minOverflowWidth;
+        // Stretch if header row width < maxWidth
+        if (headerRowWidth < options.maxWidth && overflowHeaderTextWidth > 0) {
+            const availableForOverflow = options.maxWidth - alignedWidth - minOverflowWidth;
             
             // Distribute space proportionally based on header text length
             stretchedOverflowWidths = overflowHeaderLengths.map(len => {
@@ -719,6 +712,56 @@ export function formatTable(
             );
             
             proportionalSeparatorWidths = calculateProportionalSeparatorWidths(separatorRow, Math.max(columnCount * 3, availableWidth));
+            
+            // Calculate actual separator row width to match header stretching
+            const actualSeparatorContentWidth = proportionalSeparatorWidths.reduce((sum, w) => sum + w, 0);
+            const actualSeparatorRowWidth = 1 + actualSeparatorContentWidth + (columnCount * (paddingPerCell + 1));
+            
+            // Re-calculate stretched widths to match actual separator width
+            if (stretchedOverflowWidths && actualSeparatorRowWidth < options.maxWidth) {
+                const headerRow = processedRows[0];
+                let alignedWidth = 1; // Leading |
+                for (let i = 0; i < breakColumnIndex; i++) {
+                    alignedWidth += columnWidths[i] + paddingPerCell + 1; // +1 for |
+                }
+                
+                const overflowHeaderLengths: number[] = [];
+                let overflowHeaderTextWidth = 0;
+                for (let i = breakColumnIndex; i < headerRow.length; i++) {
+                    const len = headerRow[i].length;
+                    overflowHeaderLengths.push(len);
+                    overflowHeaderTextWidth += len;
+                }
+                
+                const overflowColumnCount = headerRow.length - breakColumnIndex;
+                const minOverflowWidth = overflowColumnCount * (paddingPerCell + 1);
+                
+                // Stretch header to match actual separator width
+                const availableForOverflow = actualSeparatorRowWidth - alignedWidth - minOverflowWidth;
+                
+                if (availableForOverflow > 0 && overflowHeaderTextWidth > 0) {
+                    // Calculate proportional widths with floor
+                    const proportions = overflowHeaderLengths.map(len => len / overflowHeaderTextWidth);
+                    const floored = proportions.map((prop, i) => Math.max(overflowHeaderLengths[i], Math.floor(prop * availableForOverflow)));
+                    const flooredSum = floored.reduce((sum, w) => sum + w, 0);
+                    
+                    // Distribute remaining space (due to floor) to columns with largest fractional parts
+                    const remainder = availableForOverflow - flooredSum;
+                    if (remainder > 0) {
+                        const fractionals = proportions.map((prop, i) => {
+                            const target = prop * availableForOverflow;
+                            return { index: i, frac: target - floored[i] };
+                        }).sort((a, b) => b.frac - a.frac); // Sort descending by fractional part
+                        
+                        // Add 1 to the columns with largest fractional parts
+                        for (let i = 0; i < remainder; i++) {
+                            floored[fractionals[i].index]++;
+                        }
+                    }
+                    
+                    stretchedOverflowWidths = floored;
+                }
+            }
         } else {
             // No maxWidth constraint - use column widths as target
             const targetTotalWidth = columnWidths.reduce((sum, w) => sum + w, 0);

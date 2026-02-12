@@ -460,6 +460,24 @@ export function activate(context: vscode.ExtensionContext) {
         })
     );
 
+    context.subscriptions.push(
+        vscode.commands.registerCommand('md-table-buddy.formatTableIgnoreSeparatorRatios', async () => {
+            const ctx = getEditorAndTable();
+            if (!ctx || !ctx.table) { return; }
+
+            const options = getFormatOptions();
+            // Override keepSeparatorRatios to false
+            const optionsWithoutRatios: FormatOptions = {
+                ...options,
+                keepSeparatorRatios: false
+            };
+            const compactOptions = getCompactOptions();
+            const formattedRows = formatTable(ctx.table, optionsWithoutRatios, compactOptions);
+            await replaceTable(ctx.editor, ctx.table, formattedRows, ctx.lines);
+            vscode.window.showInformationMessage('Table formatted successfully (separator ratios ignored)!');
+        })
+    );
+
     // ========================================================================
     // ROW NUMBER COMMANDS
     // ========================================================================
@@ -1372,6 +1390,126 @@ export function activate(context: vscode.ExtensionContext) {
             } else if (action === 'Replace table') {
                 await replaceTable(ctx.editor, ctx.table, html.split('\n'), ctx.lines);
                 vscode.window.showInformationMessage('Table converted to HTML!');
+            }
+        })
+    );
+
+    // ========================================================================
+    // SETTINGS MANAGEMENT COMMANDS
+    // ========================================================================
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('md-table-buddy.resetUserSettings', async () => {
+            const config = vscode.workspace.getConfiguration('md-table-buddy');
+            const confirm = await vscode.window.showWarningMessage(
+                'Are you sure you want to reset all Table Buddy user settings to their default values?',
+                { modal: true },
+                'Reset'
+            );
+
+            if (confirm === 'Reset') {
+                const settingsToReset = [
+                    'fileExtensions',
+                    'compactTable.cellPadding',
+                    'compactTable.separatorPadding',
+                    'compactTable.alignSeparatorWithHeader',
+                    'compactTable.keepSeparatorRatios',
+                    'formatTable.maxWidth',
+                    'formatTable.cellPadding',
+                    'formatTable.separatorPadding',
+                    'formatTable.preserveAlignment',
+                    'formatTable.keepSeparatorRatios',
+                    'rowNumbers.startNumber',
+                    'rowNumbers.headerText',
+                    'rowNumbers.alignment',
+                    'sort.keepHeaderRow',
+                    'csv.delimiter',
+                    'csv.hasHeader',
+                    'csv.trimCells',
+                    'csv.quoteStrings',
+                    'csv.includeHeader',
+                    'formatOnSave',
+                    'autoInsertColumnOnTab',
+                    'autoInsertRowOnEnter',
+                    'ignoreCodeBlocks'
+                ];
+
+                try {
+                    let resetCount = 0;
+                    for (const setting of settingsToReset) {
+                        // Only reset settings that are actually defined at global (user) level
+                        const inspection = config.inspect(setting);
+                        if (inspection?.globalValue !== undefined) {
+                            await config.update(setting, undefined, vscode.ConfigurationTarget.Global);
+                            resetCount++;
+                        }
+                    }
+                    if (resetCount > 0) {
+                        vscode.window.showInformationMessage(`User settings reset to defaults successfully! (${resetCount} setting(s) reset)`);
+                    } else {
+                        vscode.window.showInformationMessage('No user-level settings found to reset.');
+                    }
+                } catch (error) {
+                    vscode.window.showErrorMessage(`Failed to reset settings: ${error}`);
+                }
+            }
+        })
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('md-table-buddy.resetWorkspaceSettings', async () => {
+            const config = vscode.workspace.getConfiguration('md-table-buddy');
+            const confirm = await vscode.window.showWarningMessage(
+                'Are you sure you want to reset all Table Buddy workspace settings to their default values?',
+                { modal: true },
+                'Reset'
+            );
+
+            if (confirm === 'Reset') {
+                const settingsToReset = [
+                    'fileExtensions',
+                    'compactTable.cellPadding',
+                    'compactTable.separatorPadding',
+                    'compactTable.alignSeparatorWithHeader',
+                    'compactTable.keepSeparatorRatios',
+                    'formatTable.maxWidth',
+                    'formatTable.cellPadding',
+                    'formatTable.separatorPadding',
+                    'formatTable.preserveAlignment',
+                    'formatTable.keepSeparatorRatios',
+                    'rowNumbers.startNumber',
+                    'rowNumbers.headerText',
+                    'rowNumbers.alignment',
+                    'sort.keepHeaderRow',
+                    'csv.delimiter',
+                    'csv.hasHeader',
+                    'csv.trimCells',
+                    'csv.quoteStrings',
+                    'csv.includeHeader',
+                    'formatOnSave',
+                    'autoInsertColumnOnTab',
+                    'autoInsertRowOnEnter',
+                    'ignoreCodeBlocks'
+                ];
+
+                try {
+                    let resetCount = 0;
+                    for (const setting of settingsToReset) {
+                        // Only reset settings that are actually defined at workspace level
+                        const inspection = config.inspect(setting);
+                        if (inspection?.workspaceValue !== undefined) {
+                            await config.update(setting, undefined, vscode.ConfigurationTarget.Workspace);
+                            resetCount++;
+                        }
+                    }
+                    if (resetCount > 0) {
+                        vscode.window.showInformationMessage(`Workspace settings reset to defaults successfully! (${resetCount} setting(s) reset)`);
+                    } else {
+                        vscode.window.showInformationMessage('No workspace-level settings found to reset.');
+                    }
+                } catch (error) {
+                    vscode.window.showErrorMessage(`Failed to reset settings: ${error}`);
+                }
             }
         })
     );

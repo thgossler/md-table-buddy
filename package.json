@@ -49,6 +49,11 @@
         "category": "Table Buddy"
       },
       {
+        "command": "md-table-buddy.formatTableIgnoreSeparatorRatios",
+        "title": "%command.formatTableIgnoreSeparatorRatios%",
+        "category": "Table Buddy"
+      },
+      {
         "command": "md-table-buddy.formatAllTables",
         "title": "%command.formatAllTables%",
         "category": "Table Buddy"
@@ -217,6 +222,16 @@
         "command": "md-table-buddy.convertToHtml",
         "title": "%command.convertToHtml%",
         "category": "Table Buddy"
+      },
+      {
+        "command": "md-table-buddy.resetUserSettings",
+        "title": "%command.resetUserSettings%",
+        "category": "Table Buddy"
+      },
+      {
+        "command": "md-table-buddy.resetWorkspaceSettings",
+        "title": "%command.resetWorkspaceSettings%",
+        "category": "Table Buddy"
       }
     ],
     "menus": {
@@ -238,6 +253,10 @@
         },
         {
           "command": "md-table-buddy.formatTable",
+          "group": "1_compact"
+        },
+        {
+          "command": "md-table-buddy.formatTableIgnoreSeparatorRatios",
           "group": "1_compact"
         },
         {
@@ -363,6 +382,14 @@
         {
           "command": "md-table-buddy.copyColumn",
           "group": "10_copy"
+        },
+        {
+          "command": "md-table-buddy.resetUserSettings",
+          "group": "99_settings"
+        },
+        {
+          "command": "md-table-buddy.resetWorkspaceSettings",
+          "group": "99_settings"
         }
       ],
       "commandPalette": [
@@ -513,6 +540,16 @@
         {
           "command": "md-table-buddy.convertToHtml",
           "when": "editorLangId == markdown"
+        },
+        {
+          "command": "md-table-buddy.formatTableIgnoreSeparatorRatios",
+          "when": "editorLangId == markdown"
+        },
+        {
+          "command": "md-table-buddy.resetUserSettings"
+        },
+        {
+          "command": "md-table-buddy.resetWorkspaceSettings"
         }
       ]
     },
