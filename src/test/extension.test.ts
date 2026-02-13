@@ -7,8 +7,11 @@ import {
     findTables,
     compactTable,
     findTableAtPosition,
+    formatTable,
     getDefaultCompactOptions,
-    CompactOptions
+    getDefaultFormatOptions,
+    CompactOptions,
+    FormatOptions
 } from '../tableUtils';
 
 suite('Table Utils Test Suite', () => {
@@ -214,6 +217,131 @@ suite('Table Utils Test Suite', () => {
             
             const table = findTableAtPosition(lines, 0);
             assert.strictEqual(table, undefined);
+        });
+    });
+
+    suite('formatTable', () => {
+        test('separator width should match header width with keepSeparatorRatios and maxWidth', () => {
+            // Simplified test case with known widths
+            const lines = [
+                '| Name | Age | City |',
+                '|------|-----|------|',
+                '| John | 30  | NYC  |'
+            ];
+            
+            const tables = findTables(lines);
+            assert.strictEqual(tables.length, 1);
+            
+            const formatOptions: FormatOptions = {
+                maxWidth: 40,
+                cellPadding: true,
+                separatorPadding: true,
+                preserveAlignment: true,
+                keepSeparatorRatios: true
+            };
+            
+            const formatted = formatTable(tables[0], formatOptions);
+            
+            const headerWidth = formatted[0].length;
+            const separatorWidth = formatted[1].length;
+            
+            // The separator width should match the header width
+            assert.strictEqual(separatorWidth, headerWidth, 
+                `Separator width (${separatorWidth}) should match header width (${headerWidth})`);
+        });
+
+        test('separator should not exceed maxWidth when keepSeparatorRatios is true', () => {
+            // Test when all content fits within maxWidth
+            const lines = [
+                '| A | B | C |',
+                '|---|---|---|',
+                '| 1 | 2 | 3 |'
+            ];
+            
+            const tables = findTables(lines);
+            const formatOptions: FormatOptions = {
+                maxWidth: 30,
+                cellPadding: true,
+                separatorPadding: true,
+                preserveAlignment: true,
+                keepSeparatorRatios: true
+            };
+            
+            const formatted = formatTable(tables[0], formatOptions);
+            
+            const headerWidth = formatted[0].length;
+            const separatorWidth = formatted[1].length;
+            
+            assert.strictEqual(separatorWidth, headerWidth,
+                `Separator width (${separatorWidth}) should match header width (${headerWidth})`);
+            assert.ok(headerWidth <= formatOptions.maxWidth,
+                `Header width (${headerWidth}) should be <= maxWidth (${formatOptions.maxWidth})`);
+        });
+
+        test('separator matches header when header has stretched overflow columns', () => {
+            // Test the original bug: header columns get stretched to use available space,
+            // and separator should match that width
+            const lines = [
+                '| Option | Description | Status |',
+                '|--------|-------------|--------|',
+                '| A | B | C |',
+                '| D | E | F |'
+            ];
+            
+            const tables = findTables(lines);
+            const formatOptions: FormatOptions = {
+                maxWidth: 60,
+                cellPadding: true,
+                separatorPadding: true,
+                preserveAlignment: true,
+                keepSeparatorRatios: true
+            };
+            
+            const formatted = formatTable(tables[0], formatOptions);
+            
+            const headerWidth = formatted[0].length;
+            const separatorWidth = formatted[1].length;
+            
+            // All rows should have matching widths
+            assert.strictEqual(separatorWidth, headerWidth,
+                `Separator width (${separatorWidth}) should match header width (${headerWidth})`);
+            
+            // Should not exceed maxWidth
+            assert.ok(headerWidth <= formatOptions.maxWidth,
+                `Header width (${headerWidth}) should be <= maxWidth (${formatOptions.maxWidth})`);
+            assert.ok(separatorWidth <= formatOptions.maxWidth,
+                `Separator width (${separatorWidth}) should be <= maxWidth (${formatOptions.maxWidth})`);
+        });
+
+        test('data rows stretch to maxWidth when overflow columns have short content', () => {
+            // Test that data rows with short content in overflow columns get stretched
+            // This table has long content in Description column for some rows, causing it to be an overflow column
+            const lines = [
+                '| ID | Type | Description |',
+                '|---|---|---|',
+                '| 1 | Error | This is a very long error message that exceeds typical line width |',
+                '| 2 | Warn | Short |'
+            ];
+            
+            const tables = findTables(lines);
+            const formatOptions: FormatOptions = {
+                maxWidth: 70,
+                cellPadding: true,
+                separatorPadding: true,
+                preserveAlignment: true,
+                keepSeparatorRatios: false
+            };
+            
+            const formatted = formatTable(tables[0], formatOptions);
+            
+            // Row 2 has a long description - it will exceed maxWidth
+            // Row 3 has a short description - it should be stretched to use available space up to maxWidth
+            const row2Width = formatted[3].length;
+            
+            // Row 2 should be stretched closer to maxWidth (not just minimal compacted width)
+            assert.ok(row2Width >= 50, `Row 2 width (${row2Width}) should be stretched to use available space`);
+            assert.ok(row2Width <= formatOptions.maxWidth,
+                `Row 2 width (${row2Width}) should not exceed maxWidth (${formatOptions.maxWidth})`);
         });
     });
 });

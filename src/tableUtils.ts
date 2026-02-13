@@ -482,13 +482,26 @@ function calculateProportionalSeparatorWidths(
     const proportions = originalLengths.map(len => len / originalTotal);
     const newWidths = proportions.map(prop => Math.max(3, Math.round(prop * targetTotalWidth)));
     
-    // Ensure total doesn't exceed target (round down adjustment if needed)
-    const actualTotal = newWidths.reduce((sum, w) => sum + w, 0);
+    // Adjust if total doesn't match target exactly (due to rounding)
+    let actualTotal = newWidths.reduce((sum, w) => sum + w, 0);
+    
     if (actualTotal > targetTotalWidth) {
-        const excess = actualTotal - targetTotalWidth;
         // Reduce the last column by the excess (ensure it stays at least 3)
+        const excess = actualTotal - targetTotalWidth;
         const lastIndex = newWidths.length - 1;
         newWidths[lastIndex] = Math.max(3, newWidths[lastIndex] - excess);
+    } else if (actualTotal < targetTotalWidth) {
+        // Distribute the remaining width to columns with the largest fractional parts
+        const deficit = targetTotalWidth - actualTotal;
+        const fractionalParts = proportions.map((prop, i) => ({
+            index: i,
+            frac: (prop * targetTotalWidth) - Math.floor(prop * targetTotalWidth)
+        })).sort((a, b) => b.frac - a.frac); // Sort descending by fractional part
+        
+        // Add 1 to the columns with largest fractional parts
+        for (let i = 0; i < deficit && i < fractionalParts.length; i++) {
+            newWidths[fractionalParts[i].index]++;
+        }
     }
     
     return newWidths;
@@ -685,83 +698,45 @@ export function formatTable(
         const separatorRow = table.rows[table.separatorIndex]; // Current state with user edits
         
         if (options.maxWidth > 0) {
-            // Calculate target width based on actual table content width, not maxWidth
-            // This ensures separator doesn't stretch beyond actual content
-            const separatorPaddingPerCell = (options.separatorPadding && options.cellPadding) ? 2 : 0;
+            // Calculate the actual header row total width (including padding and pipes)
+            const headerPaddingPerCell = options.cellPadding ? 2 : 0;
+            const headerRow = processedRows[0];
+            
+            let headerRowWidth = 1; // Leading pipe
+            
+            // Add width of aligned columns
+            for (let i = 0; i < breakColumnIndex; i++) {
+                headerRowWidth += columnWidths[i] + headerPaddingPerCell + 1; // content + padding + pipe
+            }
+            
+            // Add width of overflow columns
+            if (stretchedOverflowWidths) {
+                for (let i = 0; i < stretchedOverflowWidths.length; i++) {
+                    headerRowWidth += stretchedOverflowWidths[i] + headerPaddingPerCell + 1;
+                }
+            } else {
+                // Overflow columns without stretching use actual content (compacted)
+                for (let i = breakColumnIndex; i < headerRow.length; i++) {
+                    const cell = headerRow[i] || '';
+                    const cellPaddingForOverflow = compactOptions.cellPadding ? 2 : 0;
+                    headerRowWidth += cell.length + cellPaddingForOverflow + 1;
+                }
+            }
+            
+            // Target separator row width should match header (capped at maxWidth)
+            const targetSeparatorRowWidth = Math.min(options.maxWidth, headerRowWidth);
+            
+            // Calculate target content width for separators (excluding pipes and padding)
+            const separatorPaddingPerCell = options.separatorPadding ? 2 : 0;
             const pipesWidth = columnCount + 1; // Leading | plus one | per column
             const paddingWidth = columnCount * separatorPaddingPerCell;
             
-            // Calculate actual content width: aligned columns + overflow columns
-            let actualContentWidth = 0;
-            for (let i = 0; i < breakColumnIndex; i++) {
-                actualContentWidth += columnWidths[i];
-            }
-            if (stretchedOverflowWidths) {
-                actualContentWidth += stretchedOverflowWidths.reduce((sum, w) => sum + w, 0);
-            } else {
-                // No stretching - use minimum widths for overflow columns
-                for (let i = breakColumnIndex; i < columnCount; i++) {
-                    actualContentWidth += 3; // minimum width
-                }
-            }
+            const targetSeparatorContentWidth = targetSeparatorRowWidth - pipesWidth - paddingWidth;
             
-            // Target width is the smaller of maxWidth and actual content width
-            const availableWidth = Math.min(
-                options.maxWidth - pipesWidth - paddingWidth,
-                actualContentWidth
+            proportionalSeparatorWidths = calculateProportionalSeparatorWidths(
+                separatorRow, 
+                Math.max(columnCount * 3, targetSeparatorContentWidth)
             );
-            
-            proportionalSeparatorWidths = calculateProportionalSeparatorWidths(separatorRow, Math.max(columnCount * 3, availableWidth));
-            
-            // Calculate actual separator row width to match header stretching
-            const actualSeparatorContentWidth = proportionalSeparatorWidths.reduce((sum, w) => sum + w, 0);
-            const actualSeparatorRowWidth = 1 + actualSeparatorContentWidth + (columnCount * (paddingPerCell + 1));
-            
-            // Re-calculate stretched widths to match actual separator width
-            if (stretchedOverflowWidths && actualSeparatorRowWidth < options.maxWidth) {
-                const headerRow = processedRows[0];
-                let alignedWidth = 1; // Leading |
-                for (let i = 0; i < breakColumnIndex; i++) {
-                    alignedWidth += columnWidths[i] + paddingPerCell + 1; // +1 for |
-                }
-                
-                const overflowHeaderLengths: number[] = [];
-                let overflowHeaderTextWidth = 0;
-                for (let i = breakColumnIndex; i < headerRow.length; i++) {
-                    const len = headerRow[i].length;
-                    overflowHeaderLengths.push(len);
-                    overflowHeaderTextWidth += len;
-                }
-                
-                const overflowColumnCount = headerRow.length - breakColumnIndex;
-                const minOverflowWidth = overflowColumnCount * (paddingPerCell + 1);
-                
-                // Stretch header to match actual separator width
-                const availableForOverflow = actualSeparatorRowWidth - alignedWidth - minOverflowWidth;
-                
-                if (availableForOverflow > 0 && overflowHeaderTextWidth > 0) {
-                    // Calculate proportional widths with floor
-                    const proportions = overflowHeaderLengths.map(len => len / overflowHeaderTextWidth);
-                    const floored = proportions.map((prop, i) => Math.max(overflowHeaderLengths[i], Math.floor(prop * availableForOverflow)));
-                    const flooredSum = floored.reduce((sum, w) => sum + w, 0);
-                    
-                    // Distribute remaining space (due to floor) to columns with largest fractional parts
-                    const remainder = availableForOverflow - flooredSum;
-                    if (remainder > 0) {
-                        const fractionals = proportions.map((prop, i) => {
-                            const target = prop * availableForOverflow;
-                            return { index: i, frac: target - floored[i] };
-                        }).sort((a, b) => b.frac - a.frac); // Sort descending by fractional part
-                        
-                        // Add 1 to the columns with largest fractional parts
-                        for (let i = 0; i < remainder; i++) {
-                            floored[fractionals[i].index]++;
-                        }
-                    }
-                    
-                    stretchedOverflowWidths = floored;
-                }
-            }
         } else {
             // No maxWidth constraint - use column widths as target
             const targetTotalWidth = columnWidths.reduce((sum, w) => sum + w, 0);
@@ -788,10 +763,10 @@ export function formatTable(
                     const overflowIndex = colIndex - breakColumnIndex;
                     if (stretchedOverflowWidths && overflowIndex < stretchedOverflowWidths.length) {
                         // Use stretched width to match header
-                        return createSeparatorCell(cell, stretchedOverflowWidths[overflowIndex], compactOptions, alignment);
+                        return createSeparatorCell(cell, stretchedOverflowWidths[overflowIndex], options, alignment);
                     } else {
                         // Use minimum 3-dash separator
-                        return createMinimalSeparatorCell(alignment, compactOptions);
+                        return createMinimalSeparatorCell(alignment, options);
                     }
                 }
             });
@@ -832,7 +807,7 @@ export function formatTable(
             return '|' + formattedCells.join('|') + '|';
         }
         
-        // Format data rows (overflow columns remain compacted)
+        // Format data rows (overflow columns can be stretched if row width < maxWidth)
         const formattedCells = row.map((cell, colIndex) => {
             const alignment = alignments[colIndex] || 'left';
             
@@ -844,13 +819,86 @@ export function formatTable(
                 }
                 return paddedCell;
             } else {
-                // Overflow column - use actual cell content (compact)
+                // Overflow column - will be handled below with potential stretching
                 if (compactOptions.cellPadding) {
                     return ' ' + cell + ' ';
                 }
                 return cell;
             }
         });
+        
+        // Calculate if we should stretch overflow columns for this data row
+        if (options.maxWidth > 0 && breakColumnIndex < row.length) {
+            // Calculate current row width
+            let currentRowWidth = 1; // Leading |
+            
+            // Add aligned columns
+            for (let i = 0; i < breakColumnIndex; i++) {
+                currentRowWidth += columnWidths[i] + (options.cellPadding ? 2 : 0) + 1; // content + padding + |
+            }
+            
+            // Add compacted overflow columns
+            const overflowCells = row.slice(breakColumnIndex);
+            for (const cell of overflowCells) {
+                currentRowWidth += cell.length + (compactOptions.cellPadding ? 2 : 0) + 1; // content + padding + |
+            }
+            
+            // If row is shorter than maxWidth, stretch overflow columns proportionally
+            if (currentRowWidth < options.maxWidth) {
+                const overflowStartIndex = breakColumnIndex;
+                const overflowCount = row.length - breakColumnIndex;
+                
+                // Calculate width used by aligned columns (including pipes and padding)
+                let alignedWidth = 1; // Leading |
+                for (let i = 0; i < breakColumnIndex; i++) {
+                    alignedWidth += columnWidths[i] + (options.cellPadding ? 2 : 0) + 1; // content + padding + |
+                }
+                
+                // Calculate available space for overflow columns
+                const pipesForOverflow = overflowCount; // One pipe per overflow column
+                const paddingForOverflow = overflowCount * (compactOptions.cellPadding ? 2 : 0);
+                const minOverflowWidth = pipesForOverflow + paddingForOverflow;
+                
+                const overflowCellLengths = overflowCells.map(cell => cell.length);
+                const totalOverflowTextWidth = overflowCellLengths.reduce((sum, len) => sum + len, 0);
+                
+                if (totalOverflowTextWidth > 0) {
+                    const availableForOverflow = options.maxWidth - alignedWidth - minOverflowWidth;
+                    
+                    // Distribute space proportionally based on cell content length
+                    const proportions = overflowCellLengths.map(len => len / totalOverflowTextWidth);
+                    const floored = proportions.map((prop, i) => Math.max(overflowCellLengths[i], Math.floor(prop * availableForOverflow)));
+                    const flooredSum = floored.reduce((sum, w) => sum + w, 0);
+                    
+                    // Distribute remaining space to columns with largest fractional parts
+                    const remainder = availableForOverflow - flooredSum;
+                    if (remainder > 0) {
+                        const fractionals = proportions.map((prop, i) => {
+                            const target = prop * availableForOverflow;
+                            return { index: i, frac: target - floored[i] };
+                        }).sort((a, b) => b.frac - a.frac);
+                        
+                        for (let i = 0; i < remainder && i < fractionals.length; i++) {
+                            floored[fractionals[i].index]++;
+                        }
+                    }
+                    
+                    // Apply stretched widths to overflow columns
+                    for (let i = 0; i < overflowCells.length; i++) {
+                        const colIndex = overflowStartIndex + i;
+                        const stretchedWidth = floored[i];
+                        const cellAlignment = alignments[colIndex] || 'left';
+                        const paddedCell = padCell(overflowCells[i], stretchedWidth, cellAlignment);
+                        
+                        if (compactOptions.cellPadding) {
+                            formattedCells[colIndex] = ' ' + paddedCell + ' ';
+                        } else {
+                            formattedCells[colIndex] = paddedCell;
+                        }
+                    }
+                }
+            }
+        }
         
         return '|' + formattedCells.join('|') + '|';
     });
@@ -896,7 +944,7 @@ function formatCompactSeparatorCell(
  */
 function createMinimalSeparatorCell(
     alignment: ColumnAlignment,
-    compactOptions: CompactOptions
+    options: CompactOptions | FormatOptions
 ): string {
     let separator: string;
     
@@ -912,8 +960,11 @@ function createMinimalSeparatorCell(
         separator = '---';
     }
     
-    // Apply padding based on compactOptions
-    if (compactOptions.separatorPadding && compactOptions.cellPadding) {
+    // Apply padding based on options
+    const cellPadding = 'cellPadding' in options ? options.cellPadding : false;
+    const separatorPadding = 'separatorPadding' in options ? options.separatorPadding : false;
+    
+    if (cellPadding && separatorPadding) {
         return ' ' + separator + ' ';
     }
     
