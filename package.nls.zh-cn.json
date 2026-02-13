@@ -3,6 +3,7 @@
   "command.compactAllTables": "压缩所有表格",
   "command.formatTable": "格式化表格",
   "command.formatTableIgnoreSeparatorRatios": "格式化表格（忽略分隔符比例）",
+  "command.adjustSeparatorRatios": "根据数据调整分隔符比例",
   "command.formatAllTables": "格式化所有表格",
   "command.addRowNumbers": "添加/更新行号",
   "command.removeRowNumbers": "删除行号",

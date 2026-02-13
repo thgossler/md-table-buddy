@@ -24,6 +24,7 @@ import {
     getRowIndexInTable,
     findCodeBlockRanges,
     isLineInCodeBlock,
+    adjustSeparatorRatios,
     CompactOptions,
     FormatOptions,
     RowNumberOptions,
@@ -475,6 +476,17 @@ export function activate(context: vscode.ExtensionContext) {
             const formattedRows = formatTable(ctx.table, optionsWithoutRatios, compactOptions);
             await replaceTable(ctx.editor, ctx.table, formattedRows, ctx.lines);
             vscode.window.showInformationMessage('Table formatted successfully (separator ratios ignored)!');
+        })
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('md-table-buddy.adjustSeparatorRatios', async () => {
+            const ctx = getEditorAndTable();
+            if (!ctx || !ctx.table) { return; }
+
+            const adjustedRows = adjustSeparatorRatios(ctx.table, ctx.lines);
+            await replaceTable(ctx.editor, ctx.table, adjustedRows, ctx.lines);
+            vscode.window.showInformationMessage('Separator ratios adjusted to data successfully!');
         })
     );
 

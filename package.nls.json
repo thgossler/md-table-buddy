@@ -3,6 +3,7 @@
   "command.compactAllTables": "Compact All Tables",
   "command.formatTable": "Format Table",
   "command.formatTableIgnoreSeparatorRatios": "Format Table (Ignore Separator Ratios)",
+  "command.adjustSeparatorRatios": "Adjust Separator Ratios to Data",
   "command.formatAllTables": "Format All Tables",
   "command.addRowNumbers": "Add/Update Row Numbers",
   "command.removeRowNumbers": "Remove Row Numbers",

@@ -1586,3 +1586,137 @@ export function createEmptyTable(rows: number, columns: number, alignment: Colum
 export function tableToLines(table: MarkdownTable): string[] {
     return table.rows.map(row => '|' + row.join('|') + '|');
 }
+
+// ============================================================================
+// ADJUST SEPARATOR RATIOS
+// ============================================================================
+
+/**
+ * Strips markdown formatting and HTML tags from text to get visible length
+ */
+function getVisibleTextLength(text: string): number {
+    let cleaned = text;
+    
+    // Preserve autolinks <url> by extracting the URL (before HTML tag removal)
+    // Autolinks are <URL> or <email@domain> that render as visible links
+    cleaned = cleaned.replace(/<([^\s<>]+(?:@[^\s<>]+|:\/\/[^\s<>]+))>/g, '$1');
+    
+    // Remove HTML tags
+    cleaned = cleaned.replace(/<[^>]*>/g, '');
+    
+    // Remove markdown links [text](url) -> text
+    cleaned = cleaned.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+    
+    // Remove markdown images ![alt](url) -> alt
+    cleaned = cleaned.replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1');
+    
+    // Remove bold/italic markers **, __, *, _
+    cleaned = cleaned.replace(/(\*\*|__)(.*?)\1/g, '$2');
+    cleaned = cleaned.replace(/(\*|_)(.*?)\1/g, '$2');
+    
+    // Remove strikethrough ~~text~~ -> text
+    cleaned = cleaned.replace(/~~(.*?)~~/g, '$1');
+    
+    // Remove inline code `code` -> code
+    cleaned = cleaned.replace(/`([^`]+)`/g, '$1');
+    
+    // Remove reference-style links [text][ref] -> text
+    cleaned = cleaned.replace(/\[([^\]]+)\]\[[^\]]*\]/g, '$1');
+    
+    return cleaned.trim().length;
+}
+
+/**
+ * Adjusts separator column ratios based on visible text lengths in data rows.
+ * Only modifies the separator row, preserving all other table formatting.
+ */
+export function adjustSeparatorRatios(table: MarkdownTable, lines: string[]): string[] {
+    if (table.separatorIndex < 0 || table.rows.length < 2) {
+        // Return original lines for the table range
+        return lines.slice(table.startLine, table.endLine + 1);
+    }
+    
+    const columnCount = table.rows[0].length;
+    const columnWidths: number[] = new Array(columnCount).fill(3);
+    
+    // Calculate max visible width for each column from all rows (including header)
+    for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
+        if (rowIndex === table.separatorIndex) {
+            continue; // Skip separator row
+        }
+        
+        const row = table.rows[rowIndex];
+        for (let colIndex = 0; colIndex < Math.min(row.length, columnCount); colIndex++) {
+            const visibleLength = getVisibleTextLength(row[colIndex]);
+            columnWidths[colIndex] = Math.max(columnWidths[colIndex], visibleLength);
+        }
+    }
+    
+    // Get current separator row and calculate current total dash count
+    const separatorRow = table.rows[table.separatorIndex];
+    let currentTotalDashes = 0;
+    const currentDashCounts: number[] = [];
+    
+    for (const cell of separatorRow) {
+        const trimmed = cell.trim();
+        // Count dashes (excluding alignment colons)
+        const dashCount = (trimmed.match(/-/g) || []).length;
+        currentDashCounts.push(dashCount);
+        currentTotalDashes += dashCount;
+    }
+    
+    // Calculate total proportional width
+    const totalProportionalWidth = columnWidths.reduce((sum, w) => sum + w, 0);
+    
+    // Redistribute the same total dash count proportionally
+    const newDashCounts: number[] = [];
+    let assignedDashes = 0;
+    
+    for (let i = 0; i < columnCount - 1; i++) {
+        const proportion = totalProportionalWidth > 0 ? columnWidths[i] / totalProportionalWidth : 1 / columnCount;
+        const dashes = Math.max(1, Math.round(proportion * currentTotalDashes));
+        newDashCounts.push(dashes);
+        assignedDashes += dashes;
+    }
+    
+    // Last column gets the remainder to ensure exact total
+    newDashCounts.push(Math.max(1, currentTotalDashes - assignedDashes));
+    
+    // Detect padding from original separator line
+    const originalSeparatorLine = lines[table.startLine + table.separatorIndex];
+    const hasPadding = originalSeparatorLine.includes(' -') || originalSeparatorLine.includes('- ');
+    
+    // Build new separator cells preserving alignment and padding
+    const newSeparatorCells = separatorRow.map((cell, colIndex) => {
+        const alignment = getAlignmentFromSeparator(cell);
+        const dashCount = newDashCounts[colIndex];
+        const dashes = '-'.repeat(dashCount);
+        
+        let separator: string;
+        if (alignment === 'center') {
+            separator = ':' + dashes + ':';
+        } else if (alignment === 'left') {
+            separator = ':' + dashes;
+        } else if (alignment === 'right') {
+            separator = dashes + ':';
+        } else {
+            separator = dashes;
+        }
+        
+        // Add padding if original had padding
+        if (hasPadding) {
+            separator = ' ' + separator + ' ';
+        }
+        
+        return separator;
+    });
+    
+    // Build new separator line
+    const newSeparatorLine = '|' + newSeparatorCells.join('|') + '|';
+    
+    // Return original lines with only separator line replaced
+    const result = lines.slice(table.startLine, table.endLine + 1);
+    result[table.separatorIndex] = newSeparatorLine;
+    
+    return result;
+}

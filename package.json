@@ -54,6 +54,11 @@
         "category": "Table Buddy"
       },
       {
+        "command": "md-table-buddy.adjustSeparatorRatios",
+        "title": "%command.adjustSeparatorRatios%",
+        "category": "Table Buddy"
+      },
+      {
         "command": "md-table-buddy.formatAllTables",
         "title": "%command.formatAllTables%",
         "category": "Table Buddy"
@@ -245,23 +250,27 @@
       "md-table-buddy.submenu": [
         {
           "command": "md-table-buddy.compactTable",
-          "group": "1_compact"
+          "group": "1_compact@1"
         },
         {
           "command": "md-table-buddy.compactAllTables",
-          "group": "1_compact"
+          "group": "1_compact@2"
         },
         {
           "command": "md-table-buddy.formatTable",
-          "group": "1_compact"
+          "group": "1_compact@3"
         },
         {
           "command": "md-table-buddy.formatTableIgnoreSeparatorRatios",
-          "group": "1_compact"
+          "group": "1_compact@4"
         },
         {
           "command": "md-table-buddy.formatAllTables",
-          "group": "1_compact"
+          "group": "1_compact@5"
+        },
+        {
+          "command": "md-table-buddy.adjustSeparatorRatios",
+          "group": "1_compact@6"
         },
         {
           "command": "md-table-buddy.addRowNumbers",
@@ -543,6 +552,10 @@
         },
         {
           "command": "md-table-buddy.formatTableIgnoreSeparatorRatios",
+          "when": "editorLangId == markdown"
+        },
+        {
+          "command": "md-table-buddy.adjustSeparatorRatios",
           "when": "editorLangId == markdown"
         },
         {
