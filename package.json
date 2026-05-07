@@ -54,6 +54,11 @@
         "category": "Table Buddy"
       },
       {
+        "command": "md-table-buddy.formatTableIgnoreRatiosAndMaxWidth",
+        "title": "%command.formatTableIgnoreRatiosAndMaxWidth%",
+        "category": "Table Buddy"
+      },
+      {
         "command": "md-table-buddy.adjustSeparatorRatios",
         "title": "%command.adjustSeparatorRatios%",
         "category": "Table Buddy"
@@ -263,6 +268,11 @@
         {
           "command": "md-table-buddy.formatTableIgnoreSeparatorRatios",
           "group": "1_compact@4"
+        },
+        {
+          "command": "md-table-buddy.formatTableIgnoreRatiosAndMaxWidth",
+          "when": "md-table-buddy.showFormatIgnoreAll",
+          "group": "1_compact@5"
         },
         {
           "command": "md-table-buddy.formatAllTables",
@@ -553,6 +563,10 @@
         {
           "command": "md-table-buddy.formatTableIgnoreSeparatorRatios",
           "when": "editorLangId == markdown"
+        },
+        {
+          "command": "md-table-buddy.formatTableIgnoreRatiosAndMaxWidth",
+          "when": "editorLangId == markdown && md-table-buddy.showFormatIgnoreAll"
         },
         {
           "command": "md-table-buddy.adjustSeparatorRatios",

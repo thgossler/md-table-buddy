@@ -333,6 +333,31 @@ export function activate(context: vscode.ExtensionContext) {
     updateTableContext(vscode.window.activeTextEditor);
 
     // ========================================================================
+    // CONTEXT KEY FOR FORMAT-IGNORE-ALL VISIBILITY
+    // ========================================================================
+
+    function updateFormatIgnoreAllContext() {
+        const config = vscode.workspace.getConfiguration('md-table-buddy.formatTable');
+        const maxWidth = config.get<number>('maxWidth', 0);
+        const keepSeparatorRatios = config.get<boolean>('keepSeparatorRatios', false);
+        const show = maxWidth > 0 && keepSeparatorRatios === true;
+        vscode.commands.executeCommand('setContext', 'md-table-buddy.showFormatIgnoreAll', show);
+    }
+
+    // Update on configuration changes
+    context.subscriptions.push(
+        vscode.workspace.onDidChangeConfiguration((event) => {
+            if (event.affectsConfiguration('md-table-buddy.formatTable.maxWidth') ||
+                event.affectsConfiguration('md-table-buddy.formatTable.keepSeparatorRatios')) {
+                updateFormatIgnoreAllContext();
+            }
+        })
+    );
+
+    // Initialize on activation
+    updateFormatIgnoreAllContext();
+
+    // ========================================================================
     // FORMAT ON SAVE HANDLER
     // ========================================================================
 
@@ -476,6 +501,25 @@ export function activate(context: vscode.ExtensionContext) {
             const formattedRows = formatTable(ctx.table, optionsWithoutRatios, compactOptions);
             await replaceTable(ctx.editor, ctx.table, formattedRows, ctx.lines);
             vscode.window.showInformationMessage('Table formatted successfully (separator ratios ignored)!');
+        })
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('md-table-buddy.formatTableIgnoreRatiosAndMaxWidth', async () => {
+            const ctx = getEditorAndTable();
+            if (!ctx || !ctx.table) { return; }
+
+            const options = getFormatOptions();
+            // Override both keepSeparatorRatios and maxWidth to produce content-sized columns
+            const optionsIgnoreAll: FormatOptions = {
+                ...options,
+                keepSeparatorRatios: false,
+                maxWidth: 0
+            };
+            const compactOptions = getCompactOptions();
+            const formattedRows = formatTable(ctx.table, optionsIgnoreAll, compactOptions);
+            await replaceTable(ctx.editor, ctx.table, formattedRows, ctx.lines);
+            vscode.window.showInformationMessage('Table formatted successfully (ratios and max width ignored)!');
         })
     );
 
