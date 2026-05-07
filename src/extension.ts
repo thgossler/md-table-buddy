@@ -1120,17 +1120,11 @@ export function activate(context: vscode.ExtensionContext) {
             const currentChar = editor.selection.active.character;
             const lineText = editor.document.lineAt(currentLine).text;
 
-            // Check if cursor is on a pipe character - use default behavior
-            if (lineText[currentChar] === '|') {
-                await vscode.commands.executeCommand('type', { text: '\n' });
-                return;
-            }
-
             // Check if we're in a table
             const lines = editor.document.getText().split('\n');
             const ignoreCodeBlocks = getIgnoreCodeBlocks();
             const table = findTableAtPosition(lines, currentLine, ignoreCodeBlocks);
-            
+
             if (!table) {
                 // Not in a table, use default enter behavior
                 await vscode.commands.executeCommand('type', { text: '\n' });
@@ -1139,9 +1133,11 @@ export function activate(context: vscode.ExtensionContext) {
 
             // Check if we're in the last row
             const isLastRow = currentLine === table.endLine;
-            
+
             if (isLastRow && getAutoInsertRowOnEnter()) {
                 // Insert a new row and navigate to it
+                // Note: cursor position on a '|' does NOT block insertion here —
+                // the pipe check is intentionally moved to the non-last-row branch.
                 const rowIndex = getRowIndexInTable(table, currentLine);
                 const newTable = insertRow(table, rowIndex + 1);
                 const wasFormatted = isTableFormatted(table, lines);
@@ -1149,10 +1145,12 @@ export function activate(context: vscode.ExtensionContext) {
                 
                 await replaceTable(editor, table, newLines, lines);
                 
-                // Navigate to the same column in the new row
+                // Navigate to the same column in the new row.
+                // Cap at newRowText.length (not length-1) so the cursor never
+                // lands on the closing '|' when the new row is narrower than the original.
                 const newRowLine = table.startLine + rowIndex + 1;
                 const newRowText = editor.document.lineAt(newRowLine).text;
-                const charPos = Math.min(currentChar, newRowText.length - 1);
+                const charPos = Math.min(currentChar, newRowText.length);
                 const newPos = new vscode.Position(newRowLine, charPos);
                 editor.selection = new vscode.Selection(newPos, newPos);
             } else {
