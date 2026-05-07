@@ -150,6 +150,11 @@
         "category": "Table Buddy"
       },
       {
+        "command": "md-table-buddy.insertRowBelowAndNavigate",
+        "title": "%command.insertRowBelowAndNavigate%",
+        "category": "Table Buddy"
+      },
+      {
         "command": "md-table-buddy.removeRow",
         "title": "%command.removeRow%",
         "category": "Table Buddy"
@@ -602,6 +607,11 @@
         "command": "md-table-buddy.navigateCellBelow",
         "key": "enter",
         "when": "editorLangId == markdown && editorTextFocus && !suggestWidgetVisible"
+      },
+      {
+        "command": "md-table-buddy.insertRowBelowAndNavigate",
+        "key": "ctrl+enter",
+        "when": "md-table-buddy.inTable && editorTextFocus && !suggestWidgetVisible"
       }
     ],
     "configuration": {

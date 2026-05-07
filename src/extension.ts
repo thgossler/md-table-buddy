@@ -830,13 +830,37 @@ export function activate(context: vscode.ExtensionContext) {
             if (!ctx || !ctx.table) { return; }
 
             const rowIndex = getRowIndexInTable(ctx.table, ctx.cursorLine);
-            const insertIndex = rowIndex === ctx.table.separatorIndex ? rowIndex + 1 : rowIndex + 1;
+            const insertIndex = rowIndex + 1;
 
             const newTable = insertRow(ctx.table, insertIndex);
             const wasFormatted = isTableFormatted(ctx.table, ctx.lines);
             const newLines = applyTableFormatting(newTable, wasFormatted);
             await replaceTable(ctx.editor, ctx.table, newLines, ctx.lines);
             vscode.window.showInformationMessage('Row inserted!');
+        })
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('md-table-buddy.insertRowBelowAndNavigate', async () => {
+            const ctx = getEditorAndTable();
+            if (!ctx || !ctx.table) { return; }
+
+            const rowIndex = getRowIndexInTable(ctx.table, ctx.cursorLine);
+            const insertIndex = rowIndex + 1;
+
+            const newTable = insertRow(ctx.table, insertIndex);
+            const wasFormatted = isTableFormatted(ctx.table, ctx.lines);
+            const newLines = applyTableFormatting(newTable, wasFormatted);
+            await replaceTable(ctx.editor, ctx.table, newLines, ctx.lines);
+
+            // Navigate cursor into the first cell of the new row
+            const newRowLine = ctx.table.startLine + insertIndex;
+            const newRowText = ctx.editor.document.lineAt(newRowLine).text;
+            // Land after the leading '|' (and optional space padding)
+            const firstCellStart = newRowText.indexOf('|') + 1;
+            const charPos = Math.min(ctx.cursorChar, newRowText.length);
+            const newPos = new vscode.Position(newRowLine, Math.max(firstCellStart, charPos));
+            ctx.editor.selection = new vscode.Selection(newPos, newPos);
         })
     );
 
