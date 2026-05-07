@@ -647,7 +647,23 @@ export function formatTable(
             }
         }
     }
-    
+
+    // Pre-compute max content widths for overflow columns so that empty cells in
+    // those columns can be padded to a reasonable width (matching the widest content).
+    const overflowColumnMaxWidths: number[] = [];
+    if (breakColumnIndex < columnCount) {
+        for (let colIndex = breakColumnIndex; colIndex < columnCount; colIndex++) {
+            let maxW = 0;
+            for (let rowIndex = 0; rowIndex < processedRows.length; rowIndex++) {
+                if (rowIndex === table.separatorIndex) continue;
+                if (colIndex < processedRows[rowIndex].length) {
+                    maxW = Math.max(maxW, processedRows[rowIndex][colIndex].length);
+                }
+            }
+            overflowColumnMaxWidths.push(maxW);
+        }
+    }
+
     // Calculate stretched widths for overflow header columns
     // When header row width < maxWidth, distribute space among overflow columns
     // proportional to their text length
@@ -894,6 +910,30 @@ export function formatTable(
                             formattedCells[colIndex] = ' ' + paddedCell + ' ';
                         } else {
                             formattedCells[colIndex] = paddedCell;
+                        }
+                    }
+                } else {
+                    // All overflow cells are empty. Distribute the same available
+                    // budget (options.maxWidth) proportionally using the pre-computed
+                    // max content widths as proportions — never exceeding maxWidth.
+                    const availableForOverflow = options.maxWidth - alignedWidth - minOverflowWidth;
+                    const overflowTotalMaxWidth = overflowColumnMaxWidths.reduce((sum, w) => sum + w, 0);
+                    if (overflowTotalMaxWidth > 0 && availableForOverflow > 0) {
+                        const widths = overflowColumnMaxWidths.map(w =>
+                            Math.min(w, Math.floor((w / overflowTotalMaxWidth) * availableForOverflow))
+                        );
+                        for (let i = 0; i < overflowCells.length; i++) {
+                            const colIndex = overflowStartIndex + i;
+                            const targetWidth = widths[i];
+                            if (targetWidth > 0) {
+                                const cellAlignment = alignments[colIndex] || 'left';
+                                const paddedCell = padCell('', targetWidth, cellAlignment);
+                                if (compactOptions.cellPadding) {
+                                    formattedCells[colIndex] = ' ' + paddedCell + ' ';
+                                } else {
+                                    formattedCells[colIndex] = paddedCell;
+                                }
+                            }
                         }
                     }
                 }
